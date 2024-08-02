@@ -5,6 +5,10 @@ with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
 #include "timecounter.h"
+#if defined OS_LINUX
+#include <ctime>
+#endif
+
 #if defined OS_WINDOWS
 #include <windows.h>
 #endif
@@ -20,9 +24,10 @@ TimeCounter::~TimeCounter(){
 
 long TimeCounter::getMillisecons(){
 #if defined OS_LINUX
-	struct timeb tmb;
-	ftime(&tmb);
-	return (tmb.time * 1000) + tmb.millitm;
+   struct timespec time;
+   if(clock_gettime(CLOCK_REALTIME, &time) < 0)
+     return 0;
+   return time.tv_sec * 1000 + time.tv_nsec / (1000 * 1000);
 #elif defined OS_MAC
 	struct timeb tmb;
 	ftime(&tmb);
