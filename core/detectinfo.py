@@ -63,7 +63,7 @@ def get_native_suffix():
             if is_os_64bit():
                 return "linux_arm64_v1"
             else:
-                return "linux_armhf_v2"        
+                return "linux_armhf_v2"
         elif hwnm == "Wandboard":
             if is_os_64bit():
                 return "linux_arm64_v1"
@@ -74,7 +74,7 @@ def get_native_suffix():
                 return "linux_arm64_v1"
             else:
                 return "linux_armhf_v2"
-        
+
         sapp = platform.machine()
         if sapp is not None:
             if sapp.upper()=="AMD64" or sapp.lower()=="x86_64" or sapp.lower()=="i386" or sapp.lower()=="x86" or (len(sapp)==4 and sapp[0]=="i" and sapp[2:4]=="86"):
@@ -92,7 +92,7 @@ def get_native_suffix():
                     if is_os_64bit():
                         return "mac_x86_64"
                     elif is_os_32bit():
-                        return "mac_x86_32"                
+                        return "mac_x86_32"
             elif is_linux() and len(sapp)>=3 and sapp[0:3].lower()=="arm":
                 try:
                     if is_os_64bit():
@@ -111,15 +111,14 @@ def get_native_suffix():
             elif is_linux() and len(sapp)>=7 and sapp[0:7].lower()=="aarch64":
                 return "linux_arm64_v1"
             elif is_windows() and sapp.upper()=="ARM64":
-                return "win_x86_32" 
+                return "win_x86_32"
             elif is_mac() and sapp.upper()=="ARM64":
-                return "mac_arm64_v1" 
+                return "mac_arm64_v1"
     except:
         None
     if is_linux():
-        return "linux_generic" 
+        return "linux_generic"
     return None
 
 if __name__ == "__main__":
     print(get_native_suffix())
-    

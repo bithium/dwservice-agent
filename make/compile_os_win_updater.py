@@ -8,7 +8,7 @@ with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import compile_generic
 
 class Compile(compile_generic.Compile):
-    
+
     def __init__(self):
         compile_generic.Compile.__init__(self,"os_win_updater")
 
@@ -16,19 +16,18 @@ class Compile(compile_generic.Compile):
         conf=None
         if osn=="windows":
             conf={}
-            conf["outname"]="dwagupd.exe" 
+            conf["outname"]="dwagupd.exe"
             conf["cpp_include_paths"]=[]
             conf["cpp_library_paths"]=conf["cpp_include_paths"]
             conf["libraries"]=[]
             conf["linker_flags"]="-shared -static-libgcc -static-libstdc++"
         return conf
-    
-    
+
+
 if __name__ == "__main__":
     m = Compile()
     m.run()
-    
-    
-    
-    
-    
+
+
+
+

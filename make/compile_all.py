@@ -26,27 +26,27 @@ import compile_os_win_updater
 
 
 class CompileAll():
-    
+
     def __init__(self):
         self._b32bit=False
-    
+
     def set_32bit(self):
         self._b32bit=True
-    
+
     def get_path_tmp(self):
         if self._b32bit:
             return utils.PATHTMP+"32"
         else:
             return utils.PATHTMP
-    
+
     def get_path_native(self):
         if self._b32bit:
             return utils.PATHNATIVE+"32"
         else:
             return utils.PATHNATIVE
-    
+
     def run(self):
-        bok=True        
+        bok=True
         arstatus=[]
         utils.init_path(self.get_path_native())
         utils.info("BEGIN DEPENDENCIES")
@@ -62,7 +62,7 @@ class CompileAll():
         except:
             bok=False
             utils.info("ERROR DEPENDENCIES")
-        
+
         if bok:
             utils.info("BEGIN COMPILE ALL")
             try:
@@ -86,8 +86,8 @@ class CompileAll():
             except:
                 bok=False
                 utils.info("ERROR COMPILE ALL")
-        
-         
+
+
         utils.info("")
         utils.info("")
         utils.info("STATUS:")
@@ -98,15 +98,15 @@ class CompileAll():
             utils.info("ALL COMPILED CORRECTLY.")
         else:
             utils.info("ERRORS OCCURRED.")
-        
-    
+
+
     def _compile(self,md,ars):
         mcp = md.Compile()
         smsg=mcp.get_name()
         try:
             if self._b32bit:
                 mcp.set_32bit()
-                  
+
             mcp.run()
             smsg+=" - OK!"
             ars.append(smsg)
@@ -114,11 +114,11 @@ class CompileAll():
             smsg+=" - ERROR: " + utils.exception_to_string(e)
             ars.append(smsg)
             raise e
-    
+
     def _dependency_post_fix(self,snm,sver):
         spth=self.get_path_tmp() + os.sep + snm;
         if snm=="lib_z":
-            if utils.is_mac():   
+            if utils.is_mac():
                 #CORREGGE zutil.h
                 apppth=spth + os.sep + "zutil.h"
                 f = codecs.open(apppth, encoding='utf-8')
@@ -129,14 +129,14 @@ class CompileAll():
                 f = codecs.open(apppth, encoding='utf-8', mode='w+')
                 f.write(appdata)
                 f.close()
-    
-    def _dependency(self,snm,sver,ars):        
+
+    def _dependency(self,snm,sver,ars):
         spth=self.get_path_tmp() + os.sep + snm;
         smsg = snm + " " + sver
-        utils.info("BEGIN " + snm)        
+        utils.info("BEGIN " + snm)
         try:
             conf = utils.read_json_file(spth + os.sep + snm + ".json")
-            bupd=True; 
+            bupd=True;
             if conf is not None:
                 if "version" in conf:
                     if conf["version"]==sver:
@@ -153,17 +153,17 @@ class CompileAll():
                     utils.info("os not detected.")
                     raise Exception("You have to compile it manually.")
                 if self._b32bit:
-                    sfx=sfx.replace("64","32")                
+                    sfx=sfx.replace("64","32")
                 utils.init_path(spth)
                 utils.info("download headers and library ...")
                 nurl = utils.get_node_url()
-                
+
                 if snm!="lib_gcc" and snm!="lib_stdcpp":
                     appnm="headers_" + snm + ".zip"
                     utils.download_file(nurl + "getAgentFile.dw?name=" + appnm , spth + os.sep + appnm)
                     utils.unzip_file(spth + os.sep + appnm, spth + os.sep)
                     utils.remove_file(spth + os.sep + appnm)
-                
+
                 appnm=snm + "_" + sfx + ".zip"
                 utils.download_file(nurl + "getAgentFile.dw?name=" + appnm , spth + os.sep + appnm)
                 utils.unzip_file(spth + os.sep + appnm, spth + os.sep, "native/")
@@ -174,15 +174,15 @@ class CompileAll():
                     if "version" not in conf:
                         conf["version"]=sver
                         utils.write_json_file(conf, spth + os.sep + snm + ".json")
-            
+
             #COPY LIB TO NATIVE
             for f in os.listdir(spth):
-                if f.endswith('.dll') or f.endswith('.so') or f.endswith('.dylib'): 
+                if f.endswith('.dll') or f.endswith('.so') or f.endswith('.dylib'):
                     shutil.copy2(spth + os.sep + f, self.get_path_native() + os.sep + f)
-            
+
             #POST FIX
             self._dependency_post_fix(snm,sver)
-            
+
             smsg+=" - OK!"
             ars.append(smsg)
             utils.info("END " + snm)
@@ -190,15 +190,14 @@ class CompileAll():
             smsg+=" - ERROR: " + utils.exception_to_string(e)
             ars.append(smsg)
             raise e
-        
+
 if __name__ == "__main__":
     m = CompileAll()
     #m.set_32bit()
     m.run()
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+

@@ -46,7 +46,7 @@ def is_py2():
 if is_py2():
     def _py2_str_new(o):
         if isinstance(o, unicode):
-            return o 
+            return o
         elif isinstance(o, str):
             return o.decode("utf8", errors="replace")
         else:
@@ -66,7 +66,7 @@ str_to_bytes=lambda s, enc="ascii": s.encode(enc, errors="replace")
 
 def info(msg):
     print(msg)
-    
+
 def exception_to_string(e):
     bamsg=False;
     try:
@@ -103,7 +103,7 @@ def download_file(url,dest):
     infile = url_open(url)
     with open(dest,'wb') as outfile:
         outfile.write(infile.read())
-    
+
 def remove_file(src):
     info("remove file " + src)
     os.remove(src)
@@ -119,12 +119,12 @@ def unzip_file(src, dst, sdir=None):
     zfile = zipfile.ZipFile(src)
     try:
         for nm in zfile.namelist():
-            
+
             bok=True
-            if sdir is not None:                    
+            if sdir is not None:
                 bok=nm.startswith(sdir)
             if bok:
-                npath = dst            
+                npath = dst
                 appnm = nm
                 appar = nm.split("/")
                 if (len(appar)>1):
@@ -146,7 +146,7 @@ def unzip_file(src, dst, sdir=None):
         zfile.close()
 
 def compile_py():
-    compileall.compile_dir(PATHCORE, 0, ddir=PATHCORE)        
+    compileall.compile_dir(PATHCORE, 0, ddir=PATHCORE)
     compileall.compile_dir(PATHUI, 0, ddir=PATHUI)
     compileall.compile_dir(PATHUI + os.sep + "messages", 0, ddir=PATHUI + os.sep + "messages")
     compileall.compile_dir(PATHUI + os.sep + "images", 0, ddir=PATHUI + os.sep + "images")
@@ -156,7 +156,7 @@ def compile_py():
             apth=".." + os.sep +  f
             compileall.compile_dir(apth, 0, ddir=apth)
 
-            
+
 def system_exec(cmd,wkdir):
     scmd=cmd
     if not isinstance(scmd, str):
@@ -169,10 +169,10 @@ def system_exec(cmd,wkdir):
     if len(e)>0:
         print("Error:\n" + bytes_to_str(e,"utf8"))
         #return False
-    return True            
+    return True
 
 def remove_from_native(pathnative, mainconf):
-    if is_windows():        
+    if is_windows():
         if not "windows" in mainconf:
             return None
         cconf = mainconf["windows"]
@@ -180,7 +180,7 @@ def remove_from_native(pathnative, mainconf):
         if not "linux" in mainconf:
             return None
         cconf = mainconf["linux"]
-    elif is_mac():    
+    elif is_mac():
         if not "mac" in mainconf:
             return None
         cconf = mainconf["mac"]
@@ -189,7 +189,7 @@ def remove_from_native(pathnative, mainconf):
         os.remove(psrc)
 
 def copy_to_native(pathnative, mainconf):
-    if is_windows():        
+    if is_windows():
         if not "windows" in mainconf:
             return None
         cconf = mainconf["windows"]
@@ -197,14 +197,14 @@ def copy_to_native(pathnative, mainconf):
         if not "linux" in mainconf:
             return None
         cconf = mainconf["linux"]
-    elif is_mac():    
+    elif is_mac():
         if not "mac" in mainconf:
             return None
         cconf = mainconf["mac"]
-    
+
     pth=mainconf["pathdst"]
     name=cconf["outname"]
-    
+
     if not os.path.exists(pathnative):
         os.makedirs(pathnative)
     psrc = pth + os.sep + name
@@ -214,7 +214,7 @@ def copy_to_native(pathnative, mainconf):
     if os.path.exists(pdst):
         os.remove(pdst)
     shutil.copy2(psrc, pdst)
-    
+
 
 def compile_lib_path(cconf,pathsrc,pathdst,srcfiles):
     dsrc = os.listdir(pathsrc)
@@ -233,21 +233,21 @@ def compile_lib_path(cconf,pathsrc,pathdst,srcfiles):
             scmd=scmd.replace("%INCLUDE_PATH%", apprs)
             scmd=scmd.replace("%NAMED%", srcname.split(".")[0] + ".d")
             scmd=scmd.replace("%NAMEO%", srcname.split(".")[0] + ".o")
-            scmd=scmd.replace("%NAMECPP%", pathsrc + os.sep + srcname)        
+            scmd=scmd.replace("%NAMECPP%", pathsrc + os.sep + srcname)
             if not system_exec(scmd,pathdst):
                 raise Exception("Compiler error.")
-            srcfiles.append(srcname.split(".")[0] + ".o ")   
+            srcfiles.append(srcname.split(".")[0] + ".o ")
 
 def compile_lib(mainconf):
-    
+
     init_path(mainconf["pathdst"])
-    cflgs=""    
+    cflgs=""
     lflgs=""
-    if is_windows():        
+    if is_windows():
         if not "windows" in mainconf:
             print("NO CONFIGURATION.")
             return None
-        cconf = mainconf["windows"]        
+        cconf = mainconf["windows"]
         if "cpp_compiler_flags" in cconf:
             cflgs=cconf["cpp_compiler_flags"]
         if "linker_flags" in cconf:
@@ -265,7 +265,7 @@ def compile_lib(mainconf):
             lflgs=cconf["linker_flags"]
         cconf["cpp_compiler"]="g++ " + cflgs + " -DOS_LINUX %INCLUDE_PATH% -O3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF\"%NAMED%\" -MT\"%NAMEO%\" -o \"%NAMEO%\" \"%NAMECPP%\""
         cconf["linker"]="g++ " + lflgs + " %LIBRARY_PATH% -s -shared -o %OUTNAME% %SRCFILES% %LIBRARIES%"
-    elif is_mac():    
+    elif is_mac():
         if not "mac" in mainconf:
             print("NO CONFIGURATION.")
             return None
@@ -276,7 +276,7 @@ def compile_lib(mainconf):
             lflgs=cconf["linker_flags"]
         cconf["cpp_compiler"]="g++ " + cflgs + " -DOS_MAC %INCLUDE_PATH% -O3 -Wall -c -fmessage-length=0 -o \"%NAMEO%\" \"%NAMECPP%\""
         cconf["linker"]="g++ " + lflgs + " %LIBRARY_PATH% -dynamiclib -o %OUTNAME% %SRCFILES% %LIBRARIES% %FRAMEWORKS%"
-    
+
     if not "libraries" in cconf or len(cconf["libraries"])==0:
         cconf ["linker"]=cconf ["linker"].replace("%LIBRARIES%", "")
     else:
@@ -284,7 +284,7 @@ def compile_lib(mainconf):
         for i in range(len(cconf["libraries"])):
             libsar.append("-l" + cconf["libraries"][i])
         cconf["linker"]=cconf ["linker"].replace("%LIBRARIES%", " ".join(libsar))
-        
+
     if not "frameworks" in cconf or len(cconf["frameworks"])==0:
         cconf["linker"]=cconf ["linker"].replace("%FRAMEWORKS%", "")
     else:
@@ -292,7 +292,7 @@ def compile_lib(mainconf):
         for i in range(len(cconf["frameworks"])):
             fwksar.append("-framework " + cconf["frameworks"][i])
         cconf["linker"]=cconf ["linker"].replace("%FRAMEWORKS%", " ".join(fwksar))
-    
+
     srcfiles=[]
     compile_lib_path(cconf,os.path.abspath(mainconf["pathsrc"]),os.path.abspath(mainconf["pathdst"]),srcfiles)
     '''
@@ -310,12 +310,12 @@ def compile_lib(mainconf):
             scmd=scmd.replace("%INCLUDE_PATH%", apprs)
             scmd=scmd.replace("%NAMED%", srcname.split(".")[0] + ".d")
             scmd=scmd.replace("%NAMEO%", srcname.split(".")[0] + ".o")
-            scmd=scmd.replace("%NAMECPP%", os.path.abspath(mainconf["pathsrc"]) + os.sep + srcname)        
+            scmd=scmd.replace("%NAMECPP%", os.path.abspath(mainconf["pathsrc"]) + os.sep + srcname)
             if not system_exec(scmd,mainconf["pathdst"]):
                 raise Exception("Compiler error.")
-            srcfiles.append(srcname.split(".")[0] + ".o ")    
+            srcfiles.append(srcname.split(".")[0] + ".o ")
     '''
-            
+
     scmd=cconf["linker"]
     apprs=""
     if "cpp_library_paths" in cconf:
@@ -329,7 +329,7 @@ def compile_lib(mainconf):
     if not system_exec(scmd,mainconf["pathdst"]):
         raise Exception("Linker error.")
     return cconf
- 
+
 def xml_to_prop(s):
     prp = {}
     root = xml.etree.ElementTree.fromstring(s)
@@ -341,7 +341,7 @@ def get_node_url():
     contents = url_open(MAIN_URL + "getAgentFile.dw?name=files.xml").read();
     prp = xml_to_prop(contents)
     return prp["nodeUrl"]
-   
+
 
 def read_json_file(fn):
     appjs=None
@@ -363,7 +363,7 @@ def write_json_file(conf,fn):
     f = codecs.open(fn, 'wb')
     f.write(str_to_bytes(s,"utf8"))
     f.close()
-    
+
 #USED BY DETECTINFO
 def path_exists(pth):
     return os.path.exists(pth)
@@ -372,4 +372,3 @@ def file_open(filename, mode='rb', encoding=None, errors='strict'):
     return codecs.open(filename, mode, encoding, errors)
 #USED BY DETECTINFO
 
-    

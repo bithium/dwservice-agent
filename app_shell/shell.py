@@ -24,25 +24,25 @@ try:
 except Exception as ex:
     None
 
-try:    
+try:
     import pwd
     import crypt
     import termios
     import pty
     import fcntl
-    import select    
+    import select
 except:
     None
 
 SHELL_INTERVALL_TIMEOUT = 45; #Seconds
 
 class Shell():
-    
+
     def __init__(self, agent_main):
         self._agent_main=agent_main
         self._list = {}
         self._list_semaphore = threading.Condition()
-    
+
     def destroy(self,bforce):
         if not bforce:
             self._list_semaphore.acquire()
@@ -50,9 +50,9 @@ class Shell():
                 if len(self._list)>0:
                     return False
             finally:
-                self._list_semaphore.release()            
+                self._list_semaphore.release()
         return True
-    
+
     def on_conn_close(self, idses):
         self._list_semaphore.acquire()
         lstcopy=None
@@ -60,7 +60,7 @@ class Shell():
             lstcopy=self._list.copy()
         finally:
             self._list_semaphore.release()
-        
+
         for k in lstcopy.keys():
             sm = lstcopy[k]
             if sm.get_idses()==idses:
@@ -68,18 +68,18 @@ class Shell():
                     sm.terminate()
                 except Exception as e:
                     self._agent_main.write_except(e,"AppShell:: on_conn_close error:")
-            
-    
+
+
     def has_permission(self,cinfo):
-        return self._agent_main.has_app_permission(cinfo,"shell"); 
-    
+        return self._agent_main.has_app_permission(cinfo,"shell");
+
     def _add_shell_manager(self, cinfo, wsock):
         itm = None
         self._list_semaphore.acquire()
         key = None
         try:
             while True:
-                key = agent.generate_key(10) 
+                key = agent.generate_key(10)
                 if key not in self._list:
                     itm = ShellManager(self, cinfo, key, wsock)
                     self._list[key]=itm
@@ -88,50 +88,50 @@ class Shell():
             self._list_semaphore.release()
         itm.start()
         return itm
-    
+
     def _rem_shell_manager(self, sid):
         self._list_semaphore.acquire()
         try:
             if sid in self._list:
                 del self._list[sid]
         finally:
-            self._list_semaphore.release()    
-    
-    
+            self._list_semaphore.release()
+
+
     def req_websocket(self, cinfo, wsock):
         self._add_shell_manager(cinfo ,wsock)
 
 
 class ShellManager(threading.Thread):
-    
+
     REQ_TYPE_INITIALIZE=0
     REQ_TYPE_TERMINATE=1
     REQ_TYPE_INPUTS=2
     REQ_TYPE_CHANGE_ROWS_COLS=3
-    
+
     def __init__(self, shlmain, cinfo, sid,  wsock):
         threading.Thread.__init__(self,  name="ShellManager")
         self._shlmain=shlmain
         self._cinfo=cinfo
         self._prop=wsock.get_properties()
         self._idses = cinfo.get_idsession()
-        self._id=sid        
+        self._id=sid
         self._bclose=False
         self._websocket=wsock
         self._semaphore = threading.Condition()
         self._shell_list = {}
         self._websocket.accept(10,{"on_close": self._on_close,"on_data":self._on_data})
-                
-    def _decode_data(self,data):        
+
+    def _decode_data(self,data):
         return utils.bytes_to_str(data,"utf8")
-        
+
     def get_id(self):
         return self._id
-    
+
     def get_idses(self):
         return self._idses
-    
-    
+
+
     def _is_user_match(self, word, n, pattern, m):
         if m == len(pattern):
             return n == len(word)
@@ -139,17 +139,17 @@ class ShellManager(threading.Thread):
             for i in range(m, len(pattern)):
                 if pattern[i] != '*':
                     return False
-     
+
             return True
         if pattern[m] == '?' or pattern[m] == word[n]:
             return self._is_user_match(word, n + 1, pattern, m + 1)
         if pattern[m] == '*':
             return self._is_user_match(word, n + 1, pattern, m) or self._is_user_match(word, n, pattern, m + 1)
         return False
- 
+
     def _is_user_matching(self, word, pattern):
         return self._is_user_match(word, 0, pattern, 0)
-    
+
     def is_user_allowed(self, u):
         try:
             uaw = self._shlmain._agent_main.get_config("shell.users_allowed",None)
@@ -158,7 +158,7 @@ class ShellManager(threading.Thread):
                     if agent.is_windows():
                         if self._is_user_matching(u.lower(),itm["name"].lower()):
                             return itm["enable"]
-                    else:                     
+                    else:
                         if self._is_user_matching(u,itm["name"]):
                             return itm["enable"]
                 return False
@@ -166,7 +166,7 @@ class ShellManager(threading.Thread):
         except Exception as ex:
             self._shlmain._agent_main.write_except(ex,"AppShell:: shell manager " + self._id + ":")
         return False
-    
+
     def _on_data(self,websocket,tpdata,data):
         self._semaphore.acquire()
         try:
@@ -174,12 +174,12 @@ class ShellManager(threading.Thread):
                 try:
                     self._timeout_cnt=0;
                     self._last_timeout=int(time.time() * 1000)
-                    
+
                     if tpdata == ord('s'):
                         prprequest = json.loads(data)
                     else:  #OLD TO REMOVE 19/12/2022
                         prprequest = json.loads(self._decode_data(data))
-                    
+
                     if prprequest["type"]==ShellManager.REQ_TYPE_INITIALIZE:
                         sid=prprequest["id"]
                         if agent.is_windows():
@@ -218,12 +218,12 @@ class ShellManager(threading.Thread):
                     self._shlmain._agent_main.write_except(ex,"AppShell:: shell manager " + self._id + ":")
         finally:
             self._semaphore.release()
-        
-    
+
+
     def run(self):
         self._timeout_cnt=0;
         self._last_timeout=int(time.time() * 1000)
-        try:            
+        try:
             self._semaphore.acquire()
             try:
                 bwait=False
@@ -239,11 +239,11 @@ class ShellManager(threading.Thread):
                         self._last_timeout=int(time.time() * 1000)
                     if self._timeout_cnt>=SHELL_INTERVALL_TIMEOUT:
                         self.terminate()
-                    else:                        
+                    else:
                         arrem=[]
                         for idx in self._shell_list:
-                            try:                                
-                                #apptm=int(time.time() * 1000)                                
+                            try:
+                                #apptm=int(time.time() * 1000)
                                 upd=self._shell_list[idx].read_update()
                                 if upd is not None and len(upd)>0:
                                     bwait=False
@@ -258,7 +258,7 @@ class ShellManager(threading.Thread):
                                     print("*****************************************************************************\n")
                                     print("SEND: len:" + str(len(appsend)) + "  time:" + str(int(time.time() * 1000)-apptm) + "\n")'''
                                 if self._shell_list[idx].is_terminate():
-                                    raise Exception("Process terminated.") 
+                                    raise Exception("Process terminated.")
                             except Exception:
                                 er=utils.get_exception()
                                 try:
@@ -276,24 +276,24 @@ class ShellManager(threading.Thread):
                             if idx in self._shell_list:
                                 shl=self._shell_list[idx]
                                 shl.terminate()
-                                del self._shell_list[idx]                            
+                                del self._shell_list[idx]
             finally:
                 self._semaphore.release()
         except Exception as e:
             self.terminate()
-            self._shlmain._agent_main.write_except(e,"AppShell:: shell manager error " + self._id + ":")        
+            self._shlmain._agent_main.write_except(e,"AppShell:: shell manager error " + self._id + ":")
         self._destroy();
-    
+
     def _on_close(self):
         self.terminate();
-    
+
     def terminate(self):
         self._semaphore.acquire()
         try:
             self._bclose=True
         finally:
             self._semaphore.release()
-    
+
     def _destroy(self):
         if self._id is not None:
             for idx in self._shell_list:
@@ -308,7 +308,7 @@ class ShellManager(threading.Thread):
             if self._id is not None:
                 self._shlmain._rem_shell_manager(self._id)
             self._id=None
-    
+
     def is_close(self):
         ret = True
         self._semaphore.acquire()
@@ -319,11 +319,11 @@ class ShellManager(threading.Thread):
         return ret
 
 class LoginRequest():
-    
+
     def __init__(self, prt):
         self._parent=prt
         self._wait_counter=None
-        self._clear()  
+        self._clear()
 
     def _clear(self):
         self._key="user"
@@ -332,7 +332,7 @@ class LoginRequest():
         self._password=None
         self._pos=0
         self._soutput="\x1B[2J\x1B[HUser: "
-    
+
     def read_update(self):
         if self._key=="complete":
             return None
@@ -344,20 +344,20 @@ class LoginRequest():
                 return None
         s=self._soutput
         self._soutput=None
-        if self._key=="loginIncorrect" and self._wait_counter.is_elapsed(1):            
-            self._key="waitAndClear" 
-            s="\r\nLogin incorrect"            
+        if self._key=="loginIncorrect" and self._wait_counter.is_elapsed(1):
+            self._key="waitAndClear"
+            s="\r\nLogin incorrect"
         if self._key=="openSession":
             self._key="complete"
             self._parent.open_session(self._user,self._password)
         return s
-    
+
     def _append_to_output(self,c):
         if self._soutput is None:
             self._soutput=c
         else:
             self._soutput+=c
-    
+
     def write_inputs(self,c):
         if self._key=="loginIncorrect" or self._key=="waitAndClear" or self._key=="openSession" or self._key=="complete":
             return
@@ -383,7 +383,7 @@ class LoginRequest():
                     if self._pos>0 and len(self._val)>0:
                         lpart=self._val[0:self._pos-1]
                         rpart=self._val[self._pos:]
-                        self._val=lpart+rpart  
+                        self._val=lpart+rpart
                         self._pos-=1
                         self._append_to_output("\x1b[1D\x1b[K"+rpart)
                         rl = len(rpart)
@@ -406,7 +406,7 @@ class LoginRequest():
             if sep=="[D": #LEFT
                 if self._pos>0:
                     self._append_to_output(c)
-                    self._pos-=1                    
+                    self._pos-=1
             elif sep=="[C": #RIGHT
                 if self._pos<len(self._val):
                     self._append_to_output(c)
@@ -430,7 +430,7 @@ class LoginRequest():
                         self._append_to_output("\x1b[" + str(rl) + "D")
 
 class LinuxMac():
-    
+
     def __init__(self, mgr, sid, col, row):
         self._manager=mgr
         self._id=sid
@@ -443,22 +443,22 @@ class LinuxMac():
         self._ppid=-1
         self._pio=None
         self._reader=None
-        self._writer=None        
-    
+        self._writer=None
+
     def get_id(self):
         return self._id
-    
+
     def initialize(self):
         try:
-            bdisauth = self._manager._shlmain._agent_main.get_config('shell.disable_authentication', False)            
+            bdisauth = self._manager._shlmain._agent_main.get_config('shell.disable_authentication', False)
             if not bdisauth and os.getuid()==0:
                 self._login_request = LoginRequest(self)
             else:
                 self.open_session(None,None)
         except:
-            self.terminate() 
-        
-    
+            self.terminate()
+
+
     def check_login(self,u,p):
         if self._manager.is_user_allowed(u):
             if agent.is_mac():
@@ -466,13 +466,13 @@ class LinuxMac():
             else:
                 return self._check_login_linux(u,p)
         return False
-    
-    def _check_login_linux(self,u,p):        
+
+    def _check_login_linux(self,u,p):
         try:
             phash = None
             if utils.path_exists("/etc/shadow"):
                 with utils.file_open("/etc/shadow", "r") as sfile:
-                    scontents = sfile.readlines()                
+                    scontents = sfile.readlines()
                 for line in scontents:
                     if u in line:
                         sentry = line.strip().split(":")
@@ -483,27 +483,27 @@ class LinuxMac():
                     if uinfo is not None:
                         phash=uinfo.pw_passwd
                 except:
-                    None                    
+                    None
             if phash is not None:
                 return crypt.crypt(p, phash) == phash
             return False
         except:
             e = utils.get_exception()
-            self._manager._shlmain._agent_main.write_except(e)            
+            self._manager._shlmain._agent_main.write_except(e)
         return False
-    
+
     def _check_login_mac(self,u,p):
         try:
             cmd = ["/usr/bin/dscl", ".", "auth", u, p]
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = process.communicate()            
-            return process.returncode == 0         
+            stdout, stderr = process.communicate()
+            return process.returncode == 0
         except:
             e = utils.get_exception()
-            self._manager._shlmain._agent_main.write_except(e)            
+            self._manager._shlmain._agent_main.write_except(e)
         return False
-    
-    
+
+
     ##### TO REMOVE 20/08/2022 (moved into native); 15/03/2023 TODO FORM MAC AS WELL
     def _getutf8lang(self):
         altret=None
@@ -520,8 +520,8 @@ class LinuxMac():
                     else:
                         return ar[0] + "." + ar[1]
         except:
-            None        
-        try:                
+            None
+        try:
             p = subprocess.Popen("locale -a", stdout=subprocess.PIPE, shell=True)
             (po, pe) = p.communicate()
             p.wait()
@@ -547,7 +547,7 @@ class LinuxMac():
             None
         return altret
     ##### TO REMOVE 20/08/2022 (moved into native)
-    
+
     def open_session(self,u,p):
         try:
             ppid, pio = pty.fork()
@@ -561,7 +561,7 @@ class LinuxMac():
                     if 'IUTF8' in termios.__dict__:
                         iflag |= (termios.IXON | termios.IXOFF | termios.__dict__['IUTF8'])
                     else:
-                        iflag |= (termios.IXON | termios.IXOFF | 0x40000)                
+                        iflag |= (termios.IXON | termios.IXOFF | 0x40000)
                     oflag |= (termios.OPOST | termios.ONLCR | termios.INLCR)
                     attrs = [iflag, oflag, cflag, lflag, ispeed, ospeed, cc]
                     termios.tcsetattr(stdout, termios.TCSANOW, attrs)
@@ -584,11 +584,11 @@ class LinuxMac():
                         uinfo = pwd.getpwnam(u)
                     uid=uinfo.pw_uid
                     udir=uinfo.pw_dir
-                    upshell=uinfo.pw_shell            
+                    upshell=uinfo.pw_shell
                     if uid is None:
                         uid=os.getuid()
                     if udir is None:
-                        udir="/"            
+                        udir="/"
                     if upshell is None or not utils.path_exists(upshell):
                         upshell="/bin/bash"
                         if not utils.path_exists(upshell):
@@ -661,14 +661,14 @@ class LinuxMac():
                 return False
         except OSError:
             return False
-        
+
     def terminate(self):
-        self._login_request=None        
+        self._login_request=None
         try:
             self._manager._cinfo.dec_activities_value("shellSession")
         except:
             None
-        self._bterm=True        
+        self._bterm=True
         if self._reader is not None:
             try:
                 self._reader.close()
@@ -693,7 +693,7 @@ class LinuxMac():
                 except:
                     None
             self._ppid=-1
-        
+
     def is_terminate(self):
         if self._login_request is not None:
             return False
@@ -701,20 +701,20 @@ class LinuxMac():
             self._bterm=True
             return True
         return self._bterm
-    
+
     def change_rows_cols(self, rows, cols):
         if self._bterm == True:
-            return        
+            return
         if self._login_request is not None:
             return
         try:
             fcntl.ioctl(self._pio, termios.TIOCSWINSZ, struct.pack("hhhh", rows, cols, 0, 0))
         except:
-            self.terminate() 
-        
-    def write_inputs(self, c):        
+            self.terminate()
+
+    def write_inputs(self, c):
         if self._bterm==True:
-            return        
+            return
         try:
             if self._login_request is not None:
                 return self._login_request.write_inputs(c)
@@ -722,7 +722,7 @@ class LinuxMac():
             self._writer.flush()
         except:
             self._writer=None #MAC fix exit
-            self.terminate() 
+            self.terminate()
 
     def read_update(self):
         if self._bterm==True:
@@ -730,8 +730,8 @@ class LinuxMac():
         try:
             if self._login_request is not None:
                 return self._login_request.read_update()
-        
-        
+
+
             #inpSet = [ self._pio ]
             #inpReady, outReady, errReady = select.select(inpSet, [], [], 0)
             #if self._pio in inpReady:
@@ -746,7 +746,7 @@ class LinuxMac():
             else:
                 return s
         except:
-            self.terminate() 
+            self.terminate()
 
 
 class Windows():
@@ -774,7 +774,7 @@ class Windows():
         return self._id
 
     def initialize(self):
-        bdisauth = self._manager._shlmain._agent_main.get_config('shell.disable_authentication', False)            
+        bdisauth = self._manager._shlmain._agent_main.get_config('shell.disable_authentication', False)
         if not bdisauth and conpty.is_run_as_service():
             self._login_request = LoginRequest(self)
         else:
@@ -791,7 +791,7 @@ class Windows():
     def open_session(self,u,p):
         try:
             self._pty = conpty.ConPty(self._cmd, u, p, self._col, self._row, self._write_err)
-            self._pty.open()        
+            self._pty.open()
             try:
                 self._manager._cinfo.inc_activities_value("shellSession")
             except:
@@ -820,13 +820,13 @@ class Windows():
         try:
             if self._login_request is not None:
                 return self._login_request.write_inputs(c)
-            
+
             if c == '\r':
                 c = '\r\n'
             if self._pty.get_status()=="OPEN":
                 self._pty.write(c)
         except:
-            self.terminate()       
+            self.terminate()
 
     def read_update(self):
         if self._bterm==True:
@@ -834,24 +834,24 @@ class Windows():
         try:
             if self._login_request is not None:
                 return self._login_request.read_update()
-                    
+
             if self._pty.get_status()!="INIT" and self._pty.get_status()!="OPEN":
-                raise Exception("")                
+                raise Exception("")
             bt = self._pty.read()
             if bt is not None and len(bt)>0:
-                return utils.bytes_to_str(bt, self._rwenc)            
+                return utils.bytes_to_str(bt, self._rwenc)
             else:
                 return bt
         except:
             self.terminate()
-        
-        
+
+
     def change_rows_cols(self, rows, cols):
         if self._bterm == True:
             return
         try:
             self._pty.resize(rows, cols)
         except:
-            self.terminate() 
-    
+            self.terminate()
+
 

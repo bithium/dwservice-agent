@@ -8,12 +8,12 @@ import sys
 import os
 import configure
 
-        
+
 if __name__ == "__main__":
     i = configure.Configure()
     i._set_config_base_path(".." + os.sep + "core")
-    i.start()    
+    i.start()
     sys.exit(0)
-            
+
 
 

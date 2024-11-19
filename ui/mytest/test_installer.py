@@ -7,20 +7,20 @@ with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import sys
 import installer
 
-        
+
 if __name__ == "__main__":
     arotps={}
     arotps["gui"]=True
     arotps["mock"]=True #shows only steps it is do nothing
     #arotps["lang"]="en"
-    
+
     #TEST install.json
     arij={}
     #arij["name"]="Test";
     arij["title"]="Test Title";
     #arij["mode"]="run";
     #arij["runputcode"]=True;
-    #arij["lang"]="en"   
+    #arij["lang"]="en"
     #arij["topimage"]="image.bmp"
     #arij["logoxos"]="logo.png"
     #arij["logo16x16"]="logo16x16.bmp"
@@ -32,17 +32,17 @@ if __name__ == "__main__":
     arij["leftcolor"]="ff4400"
     #arij["installputcode"]=True
     #arotps["install.json"]=arij
-    
+
     '''
     arij1={}
-    arij1["lang"]="fr" 
+    arij1["lang"]="fr"
     arotps["install.json"]=arij1
     '''
-    
-    
+
+
     i = installer.Install()
-    i.start(arotps)    
+    i.start(arotps)
     sys.exit(0)
-            
+
 
 

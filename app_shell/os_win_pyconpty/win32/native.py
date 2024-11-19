@@ -468,7 +468,7 @@ class SID_AND_ATTRIBUTES(Structure):
     _fields_ = [
                ('sid',         PSID),
                ('attributes',  DWORD)
-               ]     
+               ]
 
 class TOKEN_USER(Structure):
     _fields_ = [

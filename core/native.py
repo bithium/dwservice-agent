@@ -46,7 +46,7 @@ def get_instance():
 def fmain(args):
     if utils.is_mac():
         if len(args)>1:
-            a1=args[1]            
+            a1=args[1]
             if a1 is not None and a1.lower()=="guilnc": #GUI LAUNCHER OLD VERSION 03/11/2021 (DO NOT REMOVE) (DO NOT REMOVE)
                 main = Mac()
                 main.start_guilnc()
@@ -64,7 +64,7 @@ def get_suffix():
 def get_library_config(name):
     fn=None
     if utils.path_exists(".srcmode"):
-        fn=".." + utils.path_sep + "lib_" + name + utils.path_sep + "config.json"        
+        fn=".." + utils.path_sep + "lib_" + name + utils.path_sep + "config.json"
     else:
         fn="native" + utils.path_sep + "lib_" + name + ".json"
     if utils.path_exists(fn):
@@ -106,19 +106,19 @@ def _load_lib_obj(name):
     elif utils.is_linux():
         if not utils.path_exists(".srcmode"):
             retlib  = ctypes.CDLL("native/" + name, ctypes.RTLD_GLOBAL)
-        else: 
+        else:
             retlib = ctypes.CDLL("../make/native/" + name, ctypes.RTLD_GLOBAL)
         if retlib is None:
             raise Exception("Missing library " + name + ".")
     elif utils.is_mac():
         if not utils.path_exists(".srcmode"):
             retlib  = ctypes.CDLL("native/" + name, ctypes.RTLD_GLOBAL)
-        else: 
+        else:
             retlib = ctypes.CDLL("../make/native/" + name, ctypes.RTLD_GLOBAL)
         if retlib is None:
             raise Exception("Missing library " + name + ".")
     return retlib;
-    
+
 
 def _unload_lib_obj(olib):
     if olib is not None:
@@ -156,108 +156,108 @@ def dlclose(handle)
 '''
 
 class Windows():
-        
+
     def __init__(self):
         self._dwaglib=None
 
     def load_library(self):
         if self._dwaglib is None:
             self._dwaglib = _load_lib_obj("dwaglib.dll");
-    
+
     def unload_library(self):
         _unload_lib_obj(self._dwaglib)
         self._dwaglib=None
-    
+
     def get_library(self):
         return self._dwaglib
 
     def task_kill(self, pid) :
         bret = self._dwaglib.taskKill(pid)
         return bret==1
-    
+
     def is_task_running(self, pid):
         bret=self._dwaglib.isTaskRunning(pid);
         return bret==1
-    
+
     def set_file_permission_everyone(self,fl):
         if utils.is_py2():
             self._dwaglib.setFilePermissionEveryone(fl)
         else:
             self._dwaglib.setFilePermissionEveryone(fl.encode('utf-8'))
-    
+
     def fix_file_permissions(self,operation,path,path_src=None):
         None
-        
+
     def is_win_xp(self):
         return self._dwaglib.isWinXP()
-        
+
     def is_win_2003_server(self):
         return self._dwaglib.isWin2003Server()
-    
+
     def is_user_in_admin_group(self):
         return self._dwaglib.isUserInAdminGroup()
-    
+
     def is_run_as_admin(self):
         return self._dwaglib.isRunAsAdmin()
-        
+
     def is_process_elevated(self):
         return self._dwaglib.isProcessElevated()
-    
+
     def get_active_console_id(self):
         return self._dwaglib.getActiveConsoleId();
-    
+
     def start_process(self, scmd, spythonHome):
         return self._dwaglib.startProcess(scmd, spythonHome);
-    
+
     def start_process_in_active_console(self, scmd, spythonHome):
         return self._dwaglib.startProcessInActiveConsole(scmd, spythonHome);
-    
+
     def win_station_connect(self):
         self._dwaglib.winStationConnect()
-    
+
     def is_gui(self):
-        return True 
-    
+        return True
+
     def reboot(self):
         os.system("shutdown -r -f -t 0")
 
 class Linux():
-    
+
     def __init__(self):
         self._dwaglib=None
-    
+
     def load_library(self):
         try:
             if self._dwaglib is None:
                 self._dwaglib = _load_lib_obj("dwaglib.so")
         except:
             None
-    
+
     def unload_library(self):
         _unload_lib_obj(self._dwaglib)
         self._dwaglib=None
-    
+
     def get_library(self):
-        return self._dwaglib 
-    
+        return self._dwaglib
+
     def task_kill(self, pid) :
         try:
             os.kill(pid, -9)
         except OSError:
             return False
         return True
-    
+
     def is_task_running(self, pid):
         try:
             os.kill(pid, 0)
         except OSError:
             return False
         return True
-    
+
     def set_file_permission_everyone(self,f):
         utils.path_change_permissions(f, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH)
-    
-        
+
+
     def fix_file_permissions(self,operation,path,path_template=None):
         apppath=path
         if apppath.endswith(utils.path_sep):
@@ -266,15 +266,15 @@ class Linux():
         if apppath_template is not None:
             if apppath_template.endswith(utils.path_sep):
                 apppath_template=apppath_template[0:len(apppath_template)-1]
-        
+
         if operation=="CREATE_DIRECTORY":
-            apppath_template=utils.path_dirname(path)    
+            apppath_template=utils.path_dirname(path)
             stat_info = utils.path_stat(apppath_template)
             mode = stat.S_IMODE(stat_info.st_mode)
             utils.path_change_permissions(path,mode)
             utils.path_change_owner(path, stat_info.st_uid, stat_info.st_gid)
         elif operation=="CREATE_FILE":
-            apppath_template=utils.path_dirname(path)    
+            apppath_template=utils.path_dirname(path)
             stat_info = utils.path_stat(apppath_template)
             mode = stat.S_IMODE(stat_info.st_mode)
             utils.path_change_permissions(path, ((mode & ~stat.S_IXUSR) & ~stat.S_IXGRP) & ~stat.S_IXOTH)
@@ -284,7 +284,7 @@ class Linux():
                 stat_info = utils.path_stat(apppath_template)
                 mode = stat.S_IMODE(stat_info.st_mode)
                 utils.path_change_permissions(path,mode)
-                stat_info = utils.path_stat(utils.path_dirname(path)) #PRENDE IL GRUPPO E L'UTENTE DELLA CARTELLA PADRE 
+                stat_info = utils.path_stat(utils.path_dirname(path)) #PRENDE IL GRUPPO E L'UTENTE DELLA CARTELLA PADRE
                 utils.path_change_owner(path, stat_info.st_uid, stat_info.st_gid)
         elif operation=="MOVE_DIRECTORY" or operation=="MOVE_FILE":
             if apppath_template is not None:
@@ -292,13 +292,13 @@ class Linux():
                 mode = stat.S_IMODE(stat_info.st_mode)
                 utils.path_change_permissions(path,mode)
                 utils.path_change_owner(path, stat_info.st_uid, stat_info.st_gid)
-        
+
     def is_gui(self):
         try:
             import detectinfo
             appnsfx = detectinfo.get_native_suffix()
             if not appnsfx=="linux_generic":
-                appout = subprocess.Popen("ps ax -ww | grep 'X.*-auth .*'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate() 
+                appout = subprocess.Popen("ps ax -ww | grep 'X.*-auth .*'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
                 lines = appout[0].splitlines()
                 for l in lines:
                     if 'X.*-auth .*' not in l:
@@ -306,10 +306,10 @@ class Linux():
         except:
             None
         return False
-    
+
     def reboot(self):
         os.system("reboot")
-        
+
     def get_tty_active(self):
         scons=None
         try:
@@ -318,7 +318,7 @@ class Linux():
             if os.path.exists(fn):
                 f = open(fn, "rb")
                 try:
-                    s = utils.bytes_to_str(f.read(),"utf8")    
+                    s = utils.bytes_to_str(f.read(),"utf8")
                     if s is not None and len(s)>0:
                         s=s.strip("\n").strip("\r")
                         appar = s.split(" ")
@@ -326,7 +326,7 @@ class Linux():
                             if apps[3:].isdigit():
                                 sactive = apps
                                 break
-                        
+
                 finally:
                     f.close()
             if sactive is not None:
@@ -337,7 +337,7 @@ class Linux():
                         s = utils.bytes_to_str(f.read(),"utf8")
                         if s is not None and len(s)>0:
                             s=s.strip("\n").strip("\r")
-                            scons = s.split(" ")[0]                        
+                            scons = s.split(" ")[0]
                     finally:
                         f.close()
                 else:
@@ -350,13 +350,13 @@ class Linux():
                     so=utils.bytes_to_str(so, "utf8")
                     scons="tty"+so.replace("\n","").replace("\r","")
                     if not os.path.exists("/sys/class/tty/" + scons):
-                        scons=None                    
+                        scons=None
             if scons is None:
                 scons = sactive
         except:
             None
         return scons
-    
+
     def get_process_ids(self):
         lret=[]
         lst = os.listdir("/proc")
@@ -364,29 +364,29 @@ class Linux():
             if name.isdigit():
                 lret.append(int(name))
         return lret
-    
+
     def get_process_environ(self,pid):
-        eret = {} 
+        eret = {}
         try:
             fn = "/proc/" + str(pid) + "/" + "environ"
             if os.path.exists(fn):
                 f = open(fn , "rb")
                 try:
-                    s = utils.bytes_to_str(f.read(),"utf8")    
+                    s = utils.bytes_to_str(f.read(),"utf8")
                     if s is not None and len(s)>0:
                         arenv = s.split("\0")
                         for apps in arenv:
                             p = apps.index("=")
                             if p>0:
-                                eret[apps[:p]]=apps[p+1:]                            
+                                eret[apps[:p]]=apps[p+1:]
                 finally:
                     f.close()
         except:
             None
         return eret
-    
+
     def get_process_stat(self,pid):
-        sret = {} 
+        sret = {}
         try:
             fn = "/proc/" + str(pid) + "/" + "stat"
             if os.path.exists(fn):
@@ -396,14 +396,14 @@ class Linux():
                     if s is not None and len(s)>0:
                         rpar = s.rfind(r')')
                         name = s[s.find(r'(') + 1:rpar]
-                        fields = s[rpar + 2:].split()            
+                        fields = s[rpar + 2:].split()
                         sret['name'] = name
                         sret['status'] = fields[0]
                         sret['ppid'] = int(fields[1])
                         sret['pgrp'] = int(fields[2])
                         sret['session'] = fields[3]
                         sret['tty'] = int(fields[4])
-                        sret['tpgid'] = int(fields[5])             
+                        sret['tpgid'] = int(fields[5])
                 finally:
                     f.close()
         except:
@@ -428,7 +428,7 @@ class Linux():
         except:
             None
         return sret
-    
+
     def get_process_gid(self, pid):
         sret = -1
         try:
@@ -447,10 +447,10 @@ class Linux():
         except:
             None
         return sret
-    
-    
+
+
     def get_process_cmdline(self, pid):
-        lret = [] 
+        lret = []
         try:
             fn = "/proc/" + str(pid) + "/" + "cmdline"
             if os.path.exists(fn):
@@ -458,21 +458,21 @@ class Linux():
                 try:
                     s = utils.bytes_to_str(f.read(),"utf8")
                     if s is not None and len(s)>0:
-                        lret = s.split("\0")             
+                        lret = s.split("\0")
                 finally:
                     f.close()
         except:
             None
         return lret
-    
+
     def get_utf8_lang(self):
         altret=None
         try:
             p = subprocess.Popen("locale | grep LANG=", stdout=subprocess.PIPE, shell=True)
             (po, pe) = p.communicate()
             p.wait()
-            if len(po) > 0:                
-                po = utils.bytes_to_str(po, "utf8")                
+            if len(po) > 0:
+                po = utils.bytes_to_str(po, "utf8")
                 ar = po.split("\n")[0].split("=")[1].split(".")
                 if ar[1].upper()=="UTF8" or ar[1].upper()=="UTF-8":
                     if ar[0].upper()=="C":
@@ -480,8 +480,8 @@ class Linux():
                     else:
                         return ar[0] + "." + ar[1]
         except:
-            None        
-        try:                
+            None
+        try:
             p = subprocess.Popen("locale -a", stdout=subprocess.PIPE, shell=True)
             (po, pe) = p.communicate()
             p.wait()
@@ -508,12 +508,12 @@ class Linux():
         return altret
 
 class Mac():
-        
+
     def __init__(self):
         self._dwaglib = None
         self._propguilnc = None #COMPATIBILITA VERSIONI PRECEDENTI
         self._propguilnc_semaphore = threading.Condition() #COMPATIBILITA VERSIONI PRECEDENTI
-            
+
     def load_library(self):
         try:
             if self._dwaglib is None:
@@ -526,31 +526,31 @@ class Mac():
                 self._dwaglib = _load_lib_obj(lbn)
         except:
             None
-    
+
     def unload_library(self):
         _unload_lib_obj(self._dwaglib)
         self._dwaglib=None
-    
-    def get_library(self):        
+
+    def get_library(self):
         return self._dwaglib
-    
+
     def task_kill(self, pid) :
         try:
             os.kill(pid, -9)
         except OSError:
             return False
         return True
-    
+
     def is_task_running(self, pid):
         try:
             os.kill(pid, 0)
         except OSError:
             return False
         return True
-    
+
     def set_file_permission_everyone(self,f):
         utils.path_change_permissions(f, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH)
-    
+
     def fix_file_permissions(self,operation,path,path_src=None):
         apppath=path
         if apppath.endswith(utils.path_sep):
@@ -560,7 +560,7 @@ class Mac():
             if apppath_src.endswith(utils.path_sep):
                 apppath_src=apppath_src[0:len(apppath_src)-1]
         else:
-            apppath_src=utils.path_dirname(path)    
+            apppath_src=utils.path_dirname(path)
         stat_info = utils.path_stat(apppath_src)
         mode = stat.S_IMODE(stat_info.st_mode)
         if operation=="CREATE_DIRECTORY":
@@ -571,18 +571,18 @@ class Mac():
             utils.path_change_owner(path, stat_info.st_uid, stat_info.st_gid)
         elif operation=="COPY_DIRECTORY" or operation=="COPY_FILE":
             utils.path_change_permissions(path,mode)
-            stat_info = utils.path_stat(utils.path_dirname(path)) #PRENDE IL GRUPPO E L'UTENTE DELLA CARTELLA PADRE 
+            stat_info = utils.path_stat(utils.path_dirname(path)) #PRENDE IL GRUPPO E L'UTENTE DELLA CARTELLA PADRE
             utils.path_change_owner(path, stat_info.st_uid, stat_info.st_gid)
         elif operation=="MOVE_DIRECTORY" or operation=="MOVE_FILE":
             utils.path_change_permissions(path,mode)
             utils.path_change_owner(path, stat_info.st_uid, stat_info.st_gid)
-    
+
     def is_gui(self):
         return True
-    
+
     def get_console_user_id(self):
         return self._dwaglib.getConsoleUserId();
-    
+
     #GUI LAUNCHER OLD VERSION 03/11/2021 (DO NOT REMOVE)
     def is_old_guilnc(self):
         #READ installer.ver
@@ -598,14 +598,14 @@ class Mac():
         except:
             None
         return bold
-    
-    
+
+
     #GUI LAUNCHER OLD VERSION 03/11/2021 (DO NOT REMOVE)
     def _signal_handler(self, signal, frame):
         self._propguilnc_stop=True
-    
+
     #GUI LAUNCHER OLD VERSION 03/11/2021 (DO NOT REMOVE)
-    def start_guilnc(self):        
+    def start_guilnc(self):
         self._propguilnc_stop=False
         signal.signal(signal.SIGTERM, self._signal_handler)
         bload=False
@@ -655,7 +655,7 @@ class Mac():
         finally:
             if bload:
                 lnc.close()
-    
+
     #GUI LAUNCHER OLD VERSION 03/11/2021 (DO NOT REMOVE)
     def init_guilnc(self,ag):
         if self.is_old_guilnc():
@@ -668,8 +668,8 @@ class Mac():
                         f = utils.file_open("guilnc.run","wb")
                         f.close()
             finally:
-                self._propguilnc_semaphore.release()                        
-    
+                self._propguilnc_semaphore.release()
+
     #GUI LAUNCHER OLD VERSION 03/11/2021 (DO NOT REMOVE)
     def term_guilnc(self):
         if self.is_old_guilnc():
@@ -682,8 +682,8 @@ class Mac():
                         self._propguilnc[l].close()
                     self._propguilnc=None
             finally:
-                self._propguilnc_semaphore.release()            
-    
+                self._propguilnc_semaphore.release()
+
     #GUI LAUNCHER OLD VERSION 03/11/2021 (DO NOT REMOVE)
     def exec_guilnc(self, uid, app, args):
         self._propguilnc_semaphore.acquire()
@@ -695,7 +695,7 @@ class Mac():
                     lnc = ipc.Property()
                     fieldsdef=[]
                     fieldsdef.append({"name":"pid","size":20})
-                    fieldsdef.append({"name":"state","size":20}) # ""=NESSUNA OPERAZIONE; "LNC"="ESEGUI"; "NUM"=PID ESEGUITO 
+                    fieldsdef.append({"name":"state","size":20}) # ""=NESSUNA OPERAZIONE; "LNC"="ESEGUI"; "NUM"=PID ESEGUITO
                     fieldsdef.append({"name":"app","size":100})
                     for i in range(GUILNC_ARG_MAX):
                         fieldsdef.append({"name":"arg" + str(i),"size":GUILNC_ARG_SIZE})
@@ -706,32 +706,32 @@ class Mac():
                     self._propguilnc[suid]=lnc
                 else:
                     lnc=self._propguilnc[suid]
-                
-                cnt=20.0                
+
+                cnt=20.0
                 #PULISCE
                 lnc.set_property("state","")
                 lnc.set_property("app","")
                 for i in range(GUILNC_ARG_MAX):
                     lnc.set_property("arg" + str(i),"")
-                #RICHIESTA                        
+                #RICHIESTA
                 lnc.set_property("app", app)
                 for i in range(len(args)):
                     lnc.set_property("arg" + str(i), args[i])
-                st="LNC" 
+                st="LNC"
                 lnc.set_property("state", st)
                 while st=="LNC" and cnt>0.0:
                     st = lnc.get_property("state")
                     time.sleep(0.2)
-                    cnt-=0.2                        
+                    cnt-=0.2
                 if st=="LNC":
                     lnc.set_property("state", "")
                     raise Exception("GUI launcher timeout.")
                 if st=="ERR":
                     raise Exception("GUI launcher error.")
-                return int(st)          
+                return int(st)
         finally:
-            self._propguilnc_semaphore.release() 
+            self._propguilnc_semaphore.release()
         return None
-    
+
     def reboot(self):
         os.system("shutdown -r now")

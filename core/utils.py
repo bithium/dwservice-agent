@@ -31,7 +31,7 @@ _bismac=(platform.system().lower().find("darwin") > -1)
 def is_py2():
     return sys.version_info[0]==2
 
-if is_py2():    
+if is_py2():
     import Queue
     import BaseHTTPServer
     import urllib
@@ -41,33 +41,33 @@ if is_py2():
         BytesIO = cStringIO.StringIO
     except ImportError:
         import StringIO
-        BytesIO = StringIO.StringIO    
+        BytesIO = StringIO.StringIO
     try:
         import cPickle
         Pickler = cPickle.Pickler
         Unpickler = cPickle.Unpickler
     except ImportError:
-        import pickle 
+        import pickle
         Pickler = pickle.Pickler
-        Unpickler = pickle.Unpickler    
+        Unpickler = pickle.Unpickler
     Queue = Queue.Queue
     HTTPServer = BaseHTTPServer.HTTPServer
     BaseHTTPRequestHandler = BaseHTTPServer.BaseHTTPRequestHandler
     nrange=xrange
     sys_maxsize=sys.maxint
-    os_getcwd=os.getcwdu        
+    os_getcwd=os.getcwdu
 else:
     import queue
     import http.server
     import urllib
     import io
-    import pickle 
-    BytesIO = io.BytesIO    
+    import pickle
+    BytesIO = io.BytesIO
     Pickler = pickle.Pickler
-    Unpickler = pickle.Unpickler        
+    Unpickler = pickle.Unpickler
     Queue = queue.Queue
     HTTPServer = http.server.HTTPServer
-    BaseHTTPRequestHandler = http.server.BaseHTTPRequestHandler    
+    BaseHTTPRequestHandler = http.server.BaseHTTPRequestHandler
     nrange=range
     sys_maxsize=sys.maxsize
     os_getcwd=os.getcwd
@@ -98,7 +98,7 @@ def exception_to_string(e):
         return appmsg
     except:
         return u"Unexpected error."
-    
+
 def get_stacktrace_string():
     try:
         s = traceback.format_exc();
@@ -131,7 +131,7 @@ def get_exception():
 
 if is_windows():
     if is_py2():
-        get_time=time.clock        
+        get_time=time.clock
     else:
         get_time=time.perf_counter
 else:
@@ -157,19 +157,19 @@ def convert_struct_to_bytes(st):
 # BUFFER #
 ##########
 if is_py2():
-    buffer_new=lambda o, p, l: buffer(o,p,l)        
+    buffer_new=lambda o, p, l: buffer(o,p,l)
 else:
-    buffer_new=lambda o, p, l: memoryview(o)[p:p+l]    
+    buffer_new=lambda o, p, l: memoryview(o)[p:p+l]
 
 
 #########
 # BYTES #
 #########
-if is_py2():    
+if is_py2():
     bytes_new=str
     bytes_join=lambda ar: "".join(ar)
     bytes_get=lambda b, i: ord(b[i])
-    bytes_to_str_hex=lambda s: s.encode('hex')            
+    bytes_to_str_hex=lambda s: s.encode('hex')
 else:
     bytes_new=bytes
     bytes_join=lambda ar: b"".join(ar)
@@ -184,7 +184,7 @@ bytes_to_str=lambda b, enc="ascii": b.decode(enc, errors="replace")
 if is_py2():
     def _py2_str_new(o):
         if isinstance(o, unicode):
-            return o 
+            return o
         elif isinstance(o, str):
             return o.decode("utf8", errors="replace")
         else:
@@ -201,17 +201,17 @@ str_to_bytes=lambda s, enc="ascii": s.encode(enc, errors="replace")
 #######
 # URL #
 #######
-if is_py2():    
+if is_py2():
     url_parse=urlparse.urlparse
     url_parse_quote_plus=urllib.quote_plus
     url_parse_quote=urllib.quote
-    url_parse_qs=urlparse.parse_qs        
-else:    
+    url_parse_qs=urlparse.parse_qs
+else:
     url_parse=urllib.parse.urlparse
     url_parse_quote_plus=urllib.parse.quote_plus
     url_parse_quote=urllib.parse.quote
     url_parse_qs=urllib.parse.parse_qs
-    
+
 
 ##############
 # FILESYSTEM #
@@ -221,7 +221,7 @@ def _path_fix(pth):
         return pth
     else:
         return pth.encode('utf-8')
-            
+
 def path_exists(pth):
     return os.path.exists(_path_fix(pth))
 
@@ -242,7 +242,7 @@ def path_remove(pth):
     if os.path.isdir(apppt):
         shutil.rmtree(apppt)
     else:
-        os.remove(apppt)        
+        os.remove(apppt)
 
 def path_list(pth):
     return os.listdir(_path_fix(pth))
@@ -250,10 +250,10 @@ def path_list(pth):
 def path_walk(pth):
     return os.walk(_path_fix(pth))
 
-def path_islink(pth):    
+def path_islink(pth):
     return os.path.islink(_path_fix(pth))
-          
-def path_readlink(pth):        
+
+def path_readlink(pth):
     return os.readlink(_path_fix(pth))
 
 def path_symlink(pths,pthd):
@@ -261,7 +261,7 @@ def path_symlink(pths,pthd):
 
 def path_copy(pths,pthd):
     shutil.copy2(_path_fix(pths), _path_fix(pthd))
-    
+
 def path_move(pths,pthd):
     shutil.move(_path_fix(pths), _path_fix(pthd))
 
@@ -324,13 +324,13 @@ def system_call(*popenargs, **kwargs):
 ###########
 # ENCODER #
 ###########
-if is_py2():    
+if is_py2():
     enc_base64_encode=lambda b: base64.b64encode(buffer(b))
-    enc_base64_decode=lambda b: base64.b64decode(buffer(b))    
+    enc_base64_decode=lambda b: base64.b64decode(buffer(b))
 else:
     enc_base64_encode=lambda b: base64.b64encode(b)
     enc_base64_decode=lambda b: base64.b64decode(b)
-    
+
 
 ############
 # COMPRESS #
@@ -338,7 +338,7 @@ else:
 def zipfile_open(filename, mode="r", compression=zipfile.ZIP_STORED, allowZip64=False):
     return zipfile.ZipFile(_path_fix(filename),mode, compression, allowZip64)
 
-if is_py2():    
+if is_py2():
     zlib_decompress=lambda b: zlib.decompress(buffer(b))
     zlib_compress=lambda b: zlib.compress(buffer(b))
 else:
@@ -367,21 +367,21 @@ LOGGER_DEBUG=logging.DEBUG
 LOGGER_ERROR=logging.ERROR
 
 class LoggerStdRedirect(object):
-    
+
     def __init__(self,lg,lv):
         self._logger = lg;
         self._level = lv;
-        
+
     def write(self, data):
         for line in data.rstrip().splitlines():
             self._logger.log(self._level, line.rstrip())
-    
+
     def flush(self):
         None
 
 
 class Logger():
-    
+
     def __init__(self, conf):
         self._logger = logging.getLogger()
         if "filename" in conf:
@@ -390,7 +390,7 @@ class Logger():
             hdlr = logging.StreamHandler()
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         hdlr.setFormatter(formatter)
-        self._logger.addHandler(hdlr) 
+        self._logger.addHandler(hdlr)
         self._logger.setLevel(logging.INFO)
         #Reindirizza stdout e stderr
         sys.stdout=LoggerStdRedirect(self._logger,logging.DEBUG)
@@ -399,7 +399,7 @@ class Logger():
 
     def set_level(self, lv):
         self._logger.setLevel(lv)
-    
+
     def write(self, lv, msg):
         self._lock.acquire()
         try:
@@ -423,7 +423,7 @@ class DebugProfile():
         self._debug_thread_filter=conf["debug_thread_filter"]
         self._debug_class_filter=conf["debug_class_filter"]
         self._debug_info = {}
-    
+
     def _trunc_msg(self, msg, sz):
         smsg="None"
         if msg is not None:
@@ -437,7 +437,7 @@ class DebugProfile():
                 smsg=smsg[0:sz] + u" ..."
             smsg = smsg.replace("\n", " ").replace("\r", " ").replace("\t", "   ")
         return smsg
-    
+
     def _filter_check(self,nm,flt):
         if flt is not None:
             ar = flt.split(";")
@@ -450,8 +450,8 @@ class DebugProfile():
                     return True
             return False
         return False
-    
-    def get_function(self, frame, event, arg): 
+
+    def get_function(self, frame, event, arg):
         #sys._getframe(0)
         if event == "call" or event == "return":
             try:
@@ -498,13 +498,13 @@ class DebugProfile():
                                         sarg.append(str_new(k) + u"=" + self._trunc_msg(flocs[k], 20))
                                 if len(sarg)>0:
                                     arpp.append(u"args: " + u",".join(sarg))
-                            
+
                         elif event == "return":
                             soper="TERM"
                             tm = debug_time.pop()
                             arpp.append(u"time: " + str(int(time.time() * 1000) - tm) + u" ms")
                             arpp.append(u"return: " + self._trunc_msg(arg, 80))
-                                
+
                         armsg=[]
                         armsg.append(u"   "*debug_indent + nm + u" > " + soper)
                         if len(arpp)>0:
@@ -520,7 +520,7 @@ class DebugProfile():
 
 
 class Counter:
-    
+
     def __init__(self, v=None):
         self._current_elapsed = 0
         self._current_time = get_time()
@@ -531,7 +531,7 @@ class Counter:
         if self._stopped:
             self._current_time = get_time()
             self._stopped=False
-    
+
     def stop(self):
         if not self._stopped:
             self._stopped=True
@@ -539,12 +539,12 @@ class Counter:
     def reset(self):
         self._current_elapsed = 0
         self._current_time = get_time()
-    
+
     def is_elapsed(self, v=None):
         if v is None:
             v=self._time_to_elapsed
         return self.get_value()>=v
-   
+
     def get_value(self):
         if self._stopped:
             return self._current_elapsed

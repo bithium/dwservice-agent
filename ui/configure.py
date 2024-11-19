@@ -17,7 +17,7 @@ except: #FIX INSTALLER
 try:
     from . import gdi
 except: #FIX INSTALLER
-    import gdi 
+    import gdi
 try:
     from . import ui
 except: #FIX INSTALLER
@@ -28,7 +28,7 @@ import utils
 import json
 
 class Configure:
-    
+
     def __init__(self):
         #self._config_port = 7950
         #self._path_config='config.json'
@@ -45,29 +45,29 @@ class Configure:
         self._password_menu_sel=ui.VarString("configureSetPassword")
         self._name=None
         self._config_base_path=None
-    
+
     def _set_config_base_path(self, pth):
         self._config_base_path=pth
-    
+
     def _get_message(self, key):
         smsg = messages.get_message(key)
         if self._name is not None:
             return smsg.replace(u"DWAgent",self._name)
         else:
             return smsg
-    
+
     def send_req(self, req, prms=None):
         try:
             if self._ipc_client==None or self._ipc_client.is_close():
                 self._ipc_client=listener.IPCClient(path=self._config_base_path)
             return self._ipc_client.send_request("admin", self._password, req, prms);
-        except: 
+        except:
             return 'ERROR:REQUEST_TIMEOUT'
-    
+
     def close_req(self):
         if self._ipc_client!=None and not self._ipc_client.is_close():
             self._ipc_client.close()
-            
+
     def check_auth(self):
         sret=self.send_req("check_auth", None)
         if sret=="OK":
@@ -76,32 +76,32 @@ class Configure:
             return False
         else:
             raise Exception(sret[6:])
-    
+
     def get_config(self, key):
         sret=self.send_req("get_config", {'key':key})
         if sret[0:2]=="OK":
             return sret[3:]
         else:
             raise Exception(sret[6:])
-        return sret     
-    
+        return sret
+
     def set_config(self, key, val):
         sret=self.send_req("set_config", {'key':key, 'value':val})
         if sret!="OK":
             raise Exception(sret[6:])
-            
+
     def uninstall_key(self):
         sret=self.send_req("remove_key", None)
         if sret!="OK":
             raise Exception(sret[6:])
-        return sret  
-    
+        return sret
+
     def install_key(self, code):
         sret=self.send_req("install_key", {'code':code})
         if sret!="OK":
             raise Exception(sret[6:])
-        return sret  
-    
+        return sret
+
     def change_config_pwd(self, pwd):
         if pwd!="":
             sret=self.send_req("change_config_pwd", {'password':self._change_config_pwd.get()})
@@ -110,7 +110,7 @@ class Configure:
         if sret!="OK":
             raise Exception(sret[6:])
         return sret
-    
+
     def change_session_pwd(self, pwd):
         if pwd!="":
             sret=self.send_req("change_session_pwd", {'password':self._change_session_pwd.get()})
@@ -118,12 +118,12 @@ class Configure:
             sret=self.send_req("change_session_pwd", {'nopassword':'true'})
         if sret!="OK":
             raise Exception(sret[6:])
-        return sret  
-    
+        return sret
+
     def is_agent_enable(self):
         s = self.get_config("enabled")
         return s=="True"
-    
+
     def read_proxy_info(self):
         pt = self.get_config("proxy_type")
         self._proxy_type.set(pt)
@@ -131,8 +131,8 @@ class Configure:
             self._proxy_host.set(self.get_config("proxy_host"))
             self._proxy_port.set(self.get_config("proxy_port"))
             self._proxy_user.set(self.get_config("proxy_user"))
-    
-    def start(self, bgui=True):        
+
+    def start(self, bgui=True):
         confjson={}
         try:
             f = utils.file_open('config.json')
@@ -142,7 +142,7 @@ class Configure:
             None
         prmsui={}
         if "name" in confjson:
-            self._name=utils.str_new(confjson["name"])            
+            self._name=utils.str_new(confjson["name"])
         prmsui["title"]=self._get_message('configureTitle')
         if "topinfo" in confjson:
             prmsui["topinfo"]=confjson["topinfo"]
@@ -152,11 +152,11 @@ class Configure:
         if applg != "":
             prmsui["logo"]=applg
         if "leftcolor" in confjson:
-            prmsui["leftcolor"]=confjson["leftcolor"]  
+            prmsui["leftcolor"]=confjson["leftcolor"]
         self._uinterface = ui.UI(prmsui, self.step_init)
         self._uinterface.start(bgui)
         self.close_req();
-            
+
 
     def step_init(self, curui):
         '''
@@ -168,7 +168,7 @@ class Configure:
         return msg
         '''
         return self.step_check_password(curui);
-    
+
     def step_check_password(self, curui):
         try:
             if curui.get_key() is not None and curui.get_key()=='insert_password':
@@ -181,7 +181,7 @@ class Configure:
                 return self.step_menu_main(curui)
         except:
             return ui.ErrorDialog(self._get_message('configureErrorConnection'))
-    
+
     def step_password(self, curui):
         self._ins_pwd=ui.VarString("", True)
         ipt = ui.Inputs()
@@ -190,7 +190,7 @@ class Configure:
         ipt.add('password', self._get_message('password'), self._ins_pwd,  True)
         ipt.next_step(self.step_check_password)
         return ipt
-    
+
     def step_menu_main(self, curui):
         try:
             self.read_proxy_info()
@@ -216,7 +216,7 @@ class Configure:
             return self.step_menu_monitor(curui)
         elif curui.get_variable().get()=="configureExit":
             return ui.Message(self._get_message('configureEnd'))
-    
+
     def step_menu_agent(self, curui):
         try:
             self._install_code.set("")
@@ -238,8 +238,8 @@ class Configure:
                 return chs
         except:
             return ui.ErrorDialog(self._get_message('configureErrorConnection'))
-            
-    
+
+
     def step_menu_agent_selected(self, curui):
         if curui.get_variable().get()=="configureChangeInstallKey":
             return self.step_menu_agent_install_key(curui)
@@ -249,8 +249,8 @@ class Configure:
             return self.step_menu_agent_enable(curui)
         elif curui.get_variable().get()=="configureDisableAgent":
             return self.step_menu_agent_disable(curui)
-    
-    
+
+
     def step_menu_agent_password(self, curui):
         chs = ui.Chooser()
         chs.set_message(self._get_message('configureChooseOperation'))
@@ -284,7 +284,7 @@ class Configure:
             chs.prev_step(self.step_menu_agent_password)
             chs.next_step(self.step_config_agent_password_procede)
             return chs
-    
+
     def step_config_agent_password_procede(self, curui):
         if curui.get_key() is not None and curui.get_key()=='set_password':
             if self._change_session_pwd.get()==self._change_resession_pwd.get():
@@ -308,7 +308,7 @@ class Configure:
                     return msg
                 except:
                     return ui.ErrorDialog(self._get_message('configureErrorConnection'))
-    
+
     def step_menu_agent_install_key(self, curui):
         chs = ui.Chooser()
         chs.set_message(self._get_message('configureUninstallKeyQuestion'))
@@ -319,7 +319,7 @@ class Configure:
         chs.prev_step(self.step_menu_agent)
         chs.next_step(self.step_menu_agent_remove_key_selected)
         return chs
-    
+
     def step_menu_agent_remove_key_selected(self, curui):
         if curui.get_variable().get()=='yes':
             try:
@@ -330,7 +330,7 @@ class Configure:
             return self.step_menu_agent_install_key_selected(curui)
         else:
             return self.step_menu_agent(curui)
-    
+
     def step_menu_agent_install_key_selected(self, curui):
         ipt = ui.Inputs()
         ipt.set_message(self._get_message('enterInstallCode'))
@@ -338,7 +338,7 @@ class Configure:
         ipt.prev_step(self.step_menu_agent)
         ipt.next_step(self.step_check_install_code)
         return ipt
-    
+
     def step_check_install_code(self, curui):
         if curui.get_key() is not None and curui.get_key()=='tryAgain':
             if curui.get_variable().get()=='configureLater':
@@ -382,8 +382,8 @@ class Configure:
             elif s=="REQUEST_TIMEOUT":
                 return ui.ErrorDialog(self._get_message('configureErrorConnection'))
             else:
-                return ui.ErrorDialog(s) 
-    
+                return ui.ErrorDialog(s)
+
     def step_configure_proxy_type(self, curui):
         chs = ui.Chooser()
         chs.set_key(curui.get_key())
@@ -395,15 +395,15 @@ class Configure:
         chs.add("SOCKS5", self._get_message('proxySocks5'))
         chs.add("NONE", self._get_message('proxyNone'))
         chs.set_variable(self._proxy_type)
-        
+
         if curui.get_key()=="menuProxy":
             chs.prev_step(self.step_menu_main)
         elif curui.get_key()=="installCode":
             chs.prev_step(self.step_menu_agent_install_key_selected)
-        
+
         chs.next_step(self.step_configure_proxy_info)
         return chs
-    
+
     def step_configure_proxy_info(self, curui):
         if curui.get_variable().get()=='HTTP' or curui.get_variable().get()=='SOCKS4' or curui.get_variable().get()=='SOCKS4A' or curui.get_variable().get()=='SOCKS5':
             ipt = ui.Inputs()
@@ -422,11 +422,11 @@ class Configure:
             self._proxy_user.set("")
             self._proxy_password.set("")
             return self.step_configure_proxy_set(curui)
-    
-    
+
+
     def step_configure_proxy_set(self, curui):
         ar = curui.get_key().split('_')
-        curui.set_key(ar[0]) 
+        curui.set_key(ar[0])
         if len(ar)==2 and ar[1]=='tryAgain':
             if curui.get_variable() is not None and curui.get_variable().get()=='configureLater':
                 if curui.get_key()=="menuProxy":
@@ -439,10 +439,10 @@ class Configure:
                     int(self._proxy_port.get())
                 except:
                     return ui.ErrorDialog(self._get_message("validInteger") .format(self._get_message('proxyPort')))
-            sret=self.send_req("set_proxy",  {'type': self._proxy_type.get(), 
-                                                       'host':  self._proxy_host.get(), 
-                                                       'port': self._proxy_port.get(), 
-                                                       'user': self._proxy_user.get(), 
+            sret=self.send_req("set_proxy",  {'type': self._proxy_type.get(),
+                                                       'host':  self._proxy_host.get(),
+                                                       'port': self._proxy_port.get(),
+                                                       'user': self._proxy_user.get(),
                                                        'password': self._proxy_password.get()})
             if sret!="OK":
                 raise Exception(sret[6:])
@@ -465,8 +465,8 @@ class Configure:
             return msg
         elif curui.get_key()=="installCode":
             return self.step_check_install_code(curui)
-        
-    
+
+
     def step_menu_agent_enable(self, curui):
         chs = ui.Chooser()
         chs.set_message(self._get_message('configureEnableAgentQuestion'))
@@ -477,7 +477,7 @@ class Configure:
         chs.prev_step(self.step_menu_agent)
         chs.next_step(self.step_menu_agent_enable_procede)
         return chs
-    
+
     def step_menu_agent_disable(self, curui):
         chs = ui.Chooser()
         chs.set_message(self._get_message('configureDisableAgentQuestion'))
@@ -488,7 +488,7 @@ class Configure:
         chs.prev_step(self.step_menu_agent)
         chs.next_step(self.step_menu_agent_disable_procede)
         return chs
-        
+
     def step_menu_agent_enable_procede(self, curui):
         if curui.get_variable().get()=='yes':
             try:
@@ -500,7 +500,7 @@ class Configure:
                     return ui.ErrorDialog(self._get_message('configureErrorConnection'))
         else:
             return self.step_menu_agent(curui)
-    
+
     def step_menu_agent_disable_procede(self, curui):
         if curui.get_variable().get()=='yes':
             try:
@@ -512,7 +512,7 @@ class Configure:
                 return ui.ErrorDialog(self._get_message('configureErrorConnection'))
         else:
             return self.step_menu_agent(curui)
-    
+
     def step_menu_monitor(self, curui):
         chs = ui.Chooser()
         chs.set_message(self._get_message('configureChooseOperation'))
@@ -520,10 +520,10 @@ class Configure:
         chs.add("configureDesktopNotification", self._get_message('configureDesktopNotification'))
         #chs.add("configureTrayIconVisibility", self._get_message('configureTrayIconVisibility'))
         chs.set_variable(ui.VarString("configurePassword"))
-        chs.prev_step(self.step_menu_main)        
+        chs.prev_step(self.step_menu_main)
         chs.next_step(self.step_menu_monitor_selected)
         return chs
-    
+
     def step_menu_monitor_selected(self, curui):
         try:
             if curui.get_variable().get()=="configurePassword":
@@ -532,7 +532,7 @@ class Configure:
                 return self.step_menu_monitor_desktop_notification(curui)
         except:
             return ui.ErrorDialog(self._get_message('configureErrorConnection'))
-       
+
     def step_menu_monitor_desktop_notification(self, curui):
         try:
             chs = ui.Chooser()
@@ -540,21 +540,21 @@ class Configure:
             chs.add("visible", self._get_message('desktopNotificationVisible'))
             chs.add("autohide", self._get_message('desktopNotificationAutoHide'))
             chs.add("none", self._get_message('desktopNotificationNone'))
-               
-            appv = self.get_config("monitor_desktop_notification")                     
+
+            appv = self.get_config("monitor_desktop_notification")
             if appv=="autohide":
                 chs.set_variable(ui.VarString("autohide"))
             elif appv=="none":
                 chs.set_variable(ui.VarString("none"))
             else:
                 chs.set_variable(ui.VarString("visible"))
-            
+
             chs.prev_step(self.step_menu_monitor)
             chs.next_step(self.step_menu_monitor_desktop_notification_procede)
             return chs
         except:
             return ui.ErrorDialog(self._get_message('configureErrorConnection'))
-    
+
     def step_menu_monitor_desktop_notification_procede(self, curui):
         try:
             self.set_config("monitor_desktop_notification", curui.get_variable().get())
@@ -563,7 +563,7 @@ class Configure:
             return msg
         except:
             return ui.ErrorDialog(self._get_message('configureErrorConnection'))
-        
+
     def step_menu_monitor_password(self, curui):
         chs = ui.Chooser()
         chs.set_message(self._get_message('configureChooseOperation'))
@@ -597,7 +597,7 @@ class Configure:
             chs.prev_step(self.step_menu_monitor_password)
             chs.next_step(self.step_config_monitor_password_procede)
             return chs
-    
+
     def step_config_monitor_password_procede(self, curui):
         if curui.get_key() is not None and curui.get_key()=='set_password':
             if self._change_config_pwd.get()==self._change_reconfig_pwd.get():
@@ -621,10 +621,10 @@ class Configure:
                     return msg
                 except:
                     return ui.ErrorDialog(self._get_message('configureErrorConnection'))
-                
+
 def fmain(args): #SERVE PER MACOS APP
     bgui=True
-    for arg in args: 
+    for arg in args:
         if arg.lower() == "-console":
             bgui=False
     i = Configure()
@@ -632,4 +632,4 @@ def fmain(args): #SERVE PER MACOS APP
 
 if __name__ == "__main__":
     fmain(sys.argv)
-    
+

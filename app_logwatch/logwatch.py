@@ -11,38 +11,38 @@ import utils
 import agent
 
 ##### TO FIX 22/09/2021
-try:    
+try:
     import os
     import sys
     if sys.version_info[0]==2:
         if utils.path_exists(os.path.dirname(__file__) + os.sep + "__pycache__"):
             utils.path_remove(os.path.dirname(__file__) + os.sep + "__pycache__")
-except: 
+except:
     None
 ##### TO FIX 22/09/2021
 
 class LogWatch():
-    
+
     def __init__(self, agent_main):
         self._agent_main=agent_main
-    
+
     def _get_app_filesystem(self):
         return self._agent_main.get_app("filesystem")
-    
+
     def has_permission(self,cinfo):
         return self._agent_main.has_app_permission(cinfo,"logwatch");
-    
+
     def get_permission(self,cinfo):
         return self._get_app_filesystem().get_permission(cinfo, "logwatch")
-    
+
     def check_and_replace_path(self, cinfo, path, operation, options={}):
         options["app"]="logwatch"
         return self._get_app_filesystem().check_and_replace_path(cinfo, path,  operation, options)
-    
+
     def req_read(self, cinfo ,params):
         path = self.check_and_replace_path(cinfo, agent.get_prop(params,'path',None),  self._get_app_filesystem().OPERATION_VIEW)
         position = agent.get_prop(params,'position','')
-        maxline = int(agent.get_prop(params,'position','1000'))        
+        maxline = int(agent.get_prop(params,'position','1000'))
         fpos = -1
         flen = utils.path_size(path)
         if  position!="":
@@ -80,4 +80,3 @@ class LogWatch():
         if fpos!=-1:
             ret["position"]=str(fpos)
         return json.dumps(ret)
-    

@@ -33,9 +33,9 @@ def _split_user_domain(u):
         ar["domain"]=arsp[0]
         ar["user"]=arsp[1]
     return ar
-    
 
-def check_login(u,p):    
+
+def check_login(u,p):
     aruser = _split_user_domain(u)
     pswd = p
     logon_type = 2
@@ -47,8 +47,8 @@ def check_login(u,p):
         return True
     else:
         return False
-    
-def is_run_as_service():   
+
+def is_run_as_service():
     token = wintypes.HANDLE()
     res = OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, ctypes.byref(token))
     if res > 0:
@@ -64,7 +64,7 @@ def is_run_as_service():
         res = GetTokenInformation(*params)
         tbuff = ctypes.create_string_buffer(return_length.value)
         params[2] = tbuff
-        params[3] = return_length.value    
+        params[3] = return_length.value
         res = GetTokenInformation(*params)
         if res > 0:
             tuser = ctypes.cast(tbuff, ctypes.POINTER(TOKEN_USER)).contents
@@ -101,7 +101,7 @@ class ConPty(Thread):
         self._lpProcessInformation=None
         self._user = u
         self._password = p
-        
+
 
     def get_status(self):
         return self._status
@@ -111,7 +111,7 @@ class ConPty(Thread):
             print(m)
         else:
             self._func_err(m)
-    
+
     def resize(self, rows, cols):
         self._cols = cols
         self._rows = rows
@@ -120,25 +120,25 @@ class ConPty(Thread):
         hr = ResizePseudoConsole(self._hPC,self._consoleSize)
         if not hr == S_OK:
             self.write_err(u"Failed to resize pseudoconsole")
-        
-        
-    
+
+
+
     def run(self):
         try:
-            
-             
+
+
             # Create pipes
             CreatePipe(byref(self._ptyIn),  # HANDLE read pipe
                        byref(self._cmdIn),  # HANDLE write pipe
                        None,                # LPSECURITY_ATTRIBUTES pipe attributes
                        0)                   # DWORD size of buffer for the pipe. 0 = default size
-    
+
             CreatePipe(byref(self._cmdOut), # HANDLE read pipe
                        byref(self._ptyOut), # HANDLE write pipe
                        None,                # LPSECURITY_ATTRIBUTES pipe attributes
                        0)                   # DWORD size of buffer for the pipe. 0 = default size
-            
-    
+
+
             # Create pseudo console
             self._consoleSize.X = self._cols
             self._consoleSize.Y = self._rows
@@ -147,38 +147,38 @@ class ConPty(Thread):
                                      self._ptyOut,       # ConPty Output
                                      DWORD(0),           # Flags
                                      byref(self._hPC))   # ConPty Reference
-            
-            
-            
+
+
+
             # Close the handles
             CloseHandle(self._ptyIn)        # Close the handles as they are now dup'ed into the ConHost
             CloseHandle(self._ptyOut)       # Close the handles as they are now dup'ed into the ConHost
-                           
-    
+
+
             if not hr == S_OK:
                 raise Exception(u"Failed to create pseudoconsole")
-    
+
             # Initialize startup info
             self._startupInfoEx = STARTUPINFOEX()
             self._startupInfoEx.StartupInfo.cb = sizeof(STARTUPINFOEX)
-            
+
             self._startupInfoEx.StartupInfo.hStdError = self._ptyOut
             self._startupInfoEx.StartupInfo.hStdOutput = self._ptyOut
             self._startupInfoEx.StartupInfo.hStdInput = self._ptyIn
             self._startupInfoEx.StartupInfo.dwFlags |= STARTF_USESTDHANDLES;
-            
+
             self.__initStartupInfoExAttachedToPseudoConsole()
             self._lpProcessInformation = PROCESS_INFORMATION()
-    
+
             defpath = None
             try:
-                defpath = os.getcwdu().split(os.path.sep)[0]+os.path.sep                
+                defpath = os.getcwdu().split(os.path.sep)[0]+os.path.sep
                 if defpath[0]==os.path.sep:
                     defpath=None
             except:
                 None
-            
-            
+
+
             if self._user is None:
                 # Create process
                 hr = CreateProcessW(None,                                        # _In_opt_      LPCTSTR
@@ -191,15 +191,15 @@ class ConPty(Thread):
                                     defpath,                                     # _In_opt_      LPCTSTR
                                     byref(self._startupInfoEx.StartupInfo),      # _In_          LPSTARTUPINFO
                                     byref(self._lpProcessInformation))           # _Out_
-            
-            else:   
+
+            else:
                 '''
                 ptoken = wintypes.HANDLE()
                 ret = OpenProcessToken(GetCurrentProcess(),  TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES, ctypes.byref(ptoken))
-                
+
                 luid = LUID()
                 ret = LookupPrivilegeValueW(None,"SeTcbPrivilege",luid)
-                
+
                 size = ctypes.sizeof(TOKEN_PRIVILEGES)
                 size += ctypes.sizeof(LUID_AND_ATTRIBUTES)
                 buffer = ctypes.create_string_buffer(size)
@@ -209,7 +209,7 @@ class ConPty(Thread):
                 tp.get_array()[0].Attributes = SE_PRIVILEGE_ENABLED
                 res = AdjustTokenPrivileges(ptoken, False, tp, 0, None, None)
                 '''
-                                    
+
                 # TOKEN USER
                 aruser = _split_user_domain(self._user)
                 pswd = self._password
@@ -219,8 +219,8 @@ class ConPty(Thread):
                 htoken = wintypes.HANDLE()
                 ret = LogonUserW(aruser["user"], aruser["domain"], pswd, logon_type, provider, ctypes.byref(htoken))
                 if ret == 0:
-                    raise Exception(u"Failed to LogonUserW " + self._user)                                    
-                
+                    raise Exception(u"Failed to LogonUserW " + self._user)
+
                 # Create process
                 hr = CreateProcessAsUserW(htoken,                                # _In_          HANDLE
                                     None,                                        # _In_opt_      LPCTSTR
@@ -233,14 +233,14 @@ class ConPty(Thread):
                                     defpath,                                    # _In_opt_      LPCTSTR
                                     byref(self._startupInfoEx.StartupInfo),      # _In_          LPSTARTUPINFO
                                     byref(self._lpProcessInformation))           # _Out_
-        
-                
+
+
                 #CloseHandle(htoken);
-    
+
             # Check if process is up
             if hr == 0x0:
                 raise Exception(u"Failed to execute " + self._cmd + u": " + str(hr))
-            
+
             self._status=u"OPEN"
             WaitForSingleObject(self._lpProcessInformation.hThread, 10 * 1000)
         except Exception as e:
@@ -258,11 +258,11 @@ class ConPty(Thread):
                     break
                 else:
                     raise Exception(u"Process not started.")
-                
+
         if self._status.startswith(u"ERROR:"):
             raise Exception(self._status[6:])
-            
-    def __initStartupInfoExAttachedToPseudoConsole(self):        
+
+    def __initStartupInfoExAttachedToPseudoConsole(self):
         dwAttributeCount = 1
         dwFlags = 0
         lpSize = PVOID()
@@ -281,7 +281,7 @@ class ConPty(Thread):
 
         mem = HeapAlloc(GetProcessHeap(), 0, lpSize.value)
         self._startupInfoEx.lpAttributeList = cast(mem, POINTER(c_void_p))
-        
+
         ok = InitializeProcThreadAttributeList(self._startupInfoEx.lpAttributeList, dwAttributeCount, dwFlags, byref(lpSize))
         if ok == 0x0:
             raise Exception(u"Failed to call InitializeProcThreadAttributeList")
@@ -318,7 +318,7 @@ class ConPty(Thread):
             try:
                 CloseHandle(self._lpProcessInformation.hProcess)
             except:
-                None        
+                None
 
     def read(self):
         MAX_READ = 1024*8
@@ -379,6 +379,6 @@ if __name__ == '__main__':
     time.sleep(3)
     output = pty.read()
     print('output2: ' + utils.bytes_to_str(output,"utf8"))
-    time.sleep(1)        
+    time.sleep(1)
     print('[!] cleanup')
     pty.close()

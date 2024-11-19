@@ -7,10 +7,10 @@ with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import ipc
 
 if __name__ == "__main__":
-    
+
     ipc.initialize()
     print("BEGIN")
-    
+
     t1 = ipc.Property()
     fieldsdef=[]
     fieldsdef.append({"name":"status","size":1})
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     t1.set_property("counter", "0123456789")
     t1.set_property("counter", "012345")
     t1.close()
-    
+
     t2 = ipc.Property()
     t2.open("prova")
     print(t2.get_property("status"))

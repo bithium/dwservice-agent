@@ -7,10 +7,10 @@ with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import ipc
 import time
 import utils
-    
-    
+
+
 class Test(ipc.ChildProcessThread):
-    
+
     def run(self):
         strm = self.get_stream()
         mp1 = strm.read_obj()
@@ -22,15 +22,15 @@ class Test(ipc.ChildProcessThread):
         strm.close()
         print("CHILD CLOSE")
         time.sleep(2)
-    
-    
 
-if __name__ == "__main__":    
+
+
+if __name__ == "__main__":
     ipc.initialize()
     print("BEGIN")
     p=ipc.Process("mytest.test_ipc_memmap", "Test")
     lstrm = p.start()
-    
+
     mp = ipc.MemMap(512*1024)
     lstrm.write_obj(mp)
     mp.seek(0)
@@ -39,16 +39,16 @@ if __name__ == "__main__":
     s = mp.read(12)
     print("PARENT READ: " + utils.bytes_to_str(s))
     time.sleep(1)
-    
+
     mp.close()
-    lstrm.close()    
-    
+    lstrm.close()
+
     print("PARENT CLOSE")
-    
+
     #WAIT REMOVE IPC
     p.join()
     time.sleep(2)
-    
+
     print("END")
     ipc.terminate()
 

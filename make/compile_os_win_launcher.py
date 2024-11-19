@@ -8,15 +8,15 @@ with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import compile_generic
 
 class Compile(compile_generic.Compile):
-    
+
     def __init__(self):
         compile_generic.Compile.__init__(self,"os_win_launcher")
-    
+
     def get_os_config(self,osn):
         conf=None
         if osn=="windows":
             conf={}
-            conf["outname"]="dwaglnc.exe" 
+            conf["outname"]="dwaglnc.exe"
             conf["cpp_include_paths"]=[]
             conf["cpp_library_paths"]=conf["cpp_include_paths"]
             conf["libraries"]=["user32", "advapi32", "userenv", "shell32"]
@@ -27,9 +27,8 @@ class Compile(compile_generic.Compile):
 if __name__ == "__main__":
     m = Compile()
     m.run()
-    
-    
-    
-    
-    
-    
+
+
+
+
+

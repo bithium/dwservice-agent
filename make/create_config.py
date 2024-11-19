@@ -27,7 +27,7 @@ def is_py2():
 if is_py2():
     def _py2_str_new(o):
         if isinstance(o, unicode):
-            return o 
+            return o
         elif isinstance(o, str):
             return o.decode("utf8", errors="replace")
         else:
@@ -36,7 +36,7 @@ if is_py2():
     url_parse_quote_plus=urllib.quote_plus
 else:
     import urllib.parse
-    str_new=str    
+    str_new=str
     url_parse_quote_plus=urllib.parse.quote_plus
 str_to_bytes=lambda s, enc="ascii": s.encode(enc, errors="replace")
 
@@ -56,7 +56,7 @@ def exception_to_string(e):
         return appmsg
     except:
         return u"Unexpected error."
-   
+
 
 if __name__ == "__main__":
     print("This script generate core/config.json")
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         objlibcom = importlib.import_module("communication")
         set_cacerts_path = getattr(objlibcom, 'set_cacerts_path', None)
         get_url_prop = getattr(objlibcom, 'get_url_prop', None)
-        ProxyInfo = getattr(objlibcom, 'ProxyInfo', None)        
+        ProxyInfo = getattr(objlibcom, 'ProxyInfo', None)
         objlibagt = importlib.import_module("agent")
         obfuscate_password = getattr(objlibagt, 'obfuscate_password', None)
         print("Create a new agent from your www.dwservice.net account to getting installation code.")
@@ -78,7 +78,7 @@ if __name__ == "__main__":
             code  = raw_input(appcodemsg)
         else:
             code  = input(appcodemsg)
-        
+
         url = URL + "checkInstallCode.dw?code=" + url_parse_quote_plus(code) # + "&osTypeCode=" + str(get_os_type_code()) +"&supportedApplications=" + urllib.quote_plus(spapp)
         try:
             set_cacerts_path(".." + os.sep + "core" + os.sep + "cacerts.pem")
@@ -102,14 +102,14 @@ if __name__ == "__main__":
                 config['key']=prop['key']
                 config['password']=obfuscate_password(prop['password'])
                 config['enabled']=True
-                config['debug_indentation_max']=0                
+                config['debug_indentation_max']=0
                 config['debug_mode']=True
-                config['develop_mode']=True                
+                config['develop_mode']=True
                 config['proxy_type']=PROXY_TYPE
                 config['proxy_host']=PROXY_HOST
-                config['proxy_port']=PROXY_PORT   
+                config['proxy_port']=PROXY_PORT
                 config['proxy_user']=PROXY_USER
-                config['proxy_password']=PROXY_PASSWORD                
+                config['proxy_password']=PROXY_PASSWORD
                 s = json.dumps(config, sort_keys=True, indent=1)
                 f = codecs.open(pthconfig, 'wb')
                 f.write(str_to_bytes(s))
@@ -117,10 +117,9 @@ if __name__ == "__main__":
                 print("file core/config.json generated.")
         except Exception as e:
             print("Connection error: " + exception_to_string(e))
-        
+
     print("")
     print("END.")
-    
-    
-    
-    
+
+
+

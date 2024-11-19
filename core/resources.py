@@ -13,7 +13,7 @@ import threading
 import importlib
 
 class ResText:
-    
+
     def __init__(self, pkgnm):
         if utils.path_exists(".srcmode"):
             self._pkgnm = pkgnm.split(".")[1]
@@ -36,7 +36,7 @@ class ResText:
                     testlng=arlng[i]
                 else:
                     arlng[i]=arlng[i].upper()
-                    testlng+="_" + arlng[i]            
+                    testlng+="_" + arlng[i]
             objlib = importlib.import_module(self._pkgnm + "." + lng)
             if objlib is None:
                 raise Exception("Not found.")
@@ -59,7 +59,7 @@ class ResText:
             self._set_locale(lng)
         finally:
             self._semaphore.release()
-    
+
     def _set_locale(self, lng):
         appdt = self._get_data(lng)
         if appdt is not None:
@@ -68,7 +68,7 @@ class ResText:
         else:
             self._lang_current="default"
             self._data_current=self._data_default
-            
+
     def get(self, key):
         try:
             self._semaphore.acquire()
@@ -88,7 +88,7 @@ class ResText:
                             if sout is not None:
                                 applng = sout.replace("\n","").replace(" ","_")[:10]
                     except:
-                        None                    
+                        None
                     try:
                         if applng is None:
                             l = locale.getdefaultlocale()
@@ -96,12 +96,12 @@ class ResText:
                                 applng=l[0]
                     except:
                         None
-                    
+
                     self._set_locale(applng)
-                    
+
             finally:
                 self._semaphore.release()
-            
+
             if key in self._data_current:
                 return self._data_current[key]
             elif key in self._data_default:
@@ -110,17 +110,16 @@ class ResText:
                 return "RES_MISSING#" + key
         except:
             return "RES_ERROR#" + key
-    
+
 class ResImage:
-    
+
     def __init__(self, pkgnm):
         if utils.path_exists(".srcmode"):
             self._pkgnm=pkgnm.split(".")[1]
         else:
-            self._pkgnm=pkgnm        
+            self._pkgnm=pkgnm
         self._basepth=utils.str_new(self._pkgnm.replace(".",utils.path_sep))
-        
-    def get(self, nm):        
+
+    def get(self, nm):
         return self._basepth + utils.path_sep + utils.str_new(nm)
-        
-        
+

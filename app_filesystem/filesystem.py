@@ -14,37 +14,37 @@ import ctypes
 import sys
 
 ##### TO FIX 22/09/2021
-try:    
+try:
     import os
-    if sys.version_info[0]==2:      
+    if sys.version_info[0]==2:
         if utils.path_exists(os.path.dirname(__file__) + os.sep + "__pycache__"):
             utils.path_remove(os.path.dirname(__file__) + os.sep + "__pycache__")
-except: 
+except:
     None
 ##### TO FIX 22/09/2021
 
 class FileSystem():
-    
+
     OPERATION_VIEW='VIEW'
     OPERATION_EDIT='EDIT'
     OPERATION_DOWNLOAD='DOWNLOAD'
     OPERATION_UPLOAD='UPLOAD'
-    
+
     TEXTFILE_BOM_TYPE = [
-                {"Name":"UTF-8", "Data": b"\xef\xbb\xbf"}, 
-                {"Name":"UTF-16BE", "Data": b"\xfe\xff"}, 
-                {"Name":"UTF-16LE", "Data": b"\xff\xfe"}, 
-                {"Name":"UTF-32BE", "Data": b"\x00\x00\xfe\xff"}, 
-                {"Name":"UTF-32LE", "Data": b"\xff\xfe\x00\x00"}, 
-                {"Name":"UTF-7", "Data": b"\x2b\x2f\x76"}, 
-                {"Name":"UTF-1", "Data": b"\xf7\x64\x4c"}, 
-                {"Name":"UTF-EBCDIC", "Data": b"\xdd\x73\x66\x73"}, 
-                {"Name":"UTF-SCSU", "Data": b"\x0e\xfe\xff"}, 
-                {"Name":"UTF-BOCU1", "Data": b"\xfb\xee\x28"}, 
+                {"Name":"UTF-8", "Data": b"\xef\xbb\xbf"},
+                {"Name":"UTF-16BE", "Data": b"\xfe\xff"},
+                {"Name":"UTF-16LE", "Data": b"\xff\xfe"},
+                {"Name":"UTF-32BE", "Data": b"\x00\x00\xfe\xff"},
+                {"Name":"UTF-32LE", "Data": b"\xff\xfe\x00\x00"},
+                {"Name":"UTF-7", "Data": b"\x2b\x2f\x76"},
+                {"Name":"UTF-1", "Data": b"\xf7\x64\x4c"},
+                {"Name":"UTF-EBCDIC", "Data": b"\xdd\x73\x66\x73"},
+                {"Name":"UTF-SCSU", "Data": b"\x0e\xfe\xff"},
+                {"Name":"UTF-BOCU1", "Data": b"\xfb\xee\x28"},
                 {"Name":"UTF-GB-18030", "Data": b"\x84\x31\x95\x33"},
             ]
-    
-    
+
+
     def __init__(self, agent_main):
         self._agent_main=agent_main
         if utils.is_windows():
@@ -53,13 +53,13 @@ class FileSystem():
             self._osnative = Linux()
         elif utils.is_mac():
             self._osnative = Mac()
-    
+
     def destroy(self,bforce):
         if self._osnative is not None:
             self._osnative.destroy()
             self._osnative = None
         return True
-        
+
     def detect_bom_file(self, path):
         enc=None
         text_file = utils.file_open(path, 'rb')
@@ -67,17 +67,17 @@ class FileSystem():
             bts = text_file.read(10)
             for bm in self.TEXTFILE_BOM_TYPE:
                 lnbm = len(bm["Data"])
-                if len(bts)>=lnbm and bts[0:lnbm]==bm["Data"]:                
+                if len(bts)>=lnbm and bts[0:lnbm]==bm["Data"]:
                     enc=bm
                     break
         finally:
             text_file.close()
         return enc
-    
+
     def has_permission(self,cinfo):
         b = self._agent_main.has_app_permission(cinfo,"filesystem") or self._agent_main.has_app_permission(cinfo,"texteditor") or self._agent_main.has_app_permission(cinfo,"logwatch");
         return b
-    
+
     def get_permission(self,cinfo,appnm="filesystem"):
         pret = None
         prms = cinfo.get_permissions()
@@ -86,12 +86,12 @@ class FileSystem():
         else:
             pret=self._agent_main.get_app_permission(cinfo,appnm)
         return pret;
-    
+
     def get_permission_path(self, cinfo, path, options={}):
         appnm="filesystem"
         if "app" in options:
             appnm = options["app"]
-        
+
         #NEL CASO DI #FILESYSTEM:// POTREBBE CORRISPONDERE A PIU' PATH ES. /a/b/c puo' corrispondere agli alias dei path /a/ e a /b/
         #quindi provo tutti i path
         pathstocheck=[]
@@ -127,7 +127,7 @@ class FileSystem():
                                     if not pt.endswith(utils.path_sep):
                                         pt=pt+utils.path_sep
                                     if self._osnative.pathStartswith(apppath,pt):
-                                        pathstocheck.append(permpt["name"] + utils.path_sep + apppath[len(pt):]) 
+                                        pathstocheck.append(permpt["name"] + utils.path_sep + apppath[len(pt):])
                             else:
                                 pathstocheck.append(apppath)
             else:
@@ -172,16 +172,16 @@ class FileSystem():
                             elif "default_allow_upload" in options:
                                 itmpth["allow_upload"]=options["default_allow_download"]
                             pathsret.append(itmpth)
-                            
+
                 else:
                     itmpth["name"]=apppath
                     itmpth["allow_edit"]=True
                     itmpth["allow_download"]=True
                     itmpth["allow_upload"]=True
                     pathsret.append(itmpth)
-                        
+
         return pathsret
-    
+
     def check_and_replace_path(self, cinfo, path, operation, options={}) :
         if path is None:
             raise Exception("Path is none")
@@ -199,8 +199,8 @@ class FileSystem():
                 break
             elif operation==self.OPERATION_UPLOAD and itmpth["allow_upload"]:
                 sret = itmpth["name"]
-                break             
-            
+                break
+
         if sret is None:
             raise Exception("Permission denied.\nOperation: " + operation + "\nPath: " + path);
         #Verifica se esiste il path
@@ -210,11 +210,11 @@ class FileSystem():
         if check_exists and not utils.path_exists(sret):
             raise Exception("Permission denied or read error.");
         return sret
-    
-    
+
+
     def get_osnative(self):
         return self._osnative;
-    
+
     def _append_to_list(self, arret, fpath,  fname):
         fp = fpath + utils.path_sep + fname
         tp = None
@@ -227,12 +227,12 @@ class FileSystem():
                 itm["Length"]=utils.path_size(fp)
             except:
                 None
-        itm["Name"] = tp + ':' + fname 
+        itm["Name"] = tp + ':' + fname
         try:
             itm["LastModified"] = int(utils.path_time(fp)*1000)
         except:
                 None
-                
+
         finfo = self._osnative.get_file_permissions(fp)
         if "Rights" in finfo:
             itm["Rights"] = finfo["Rights"]
@@ -241,17 +241,17 @@ class FileSystem():
         if "Group" in finfo:
             itm["Group"] = finfo["Group"]
         arret.append(itm)
-            
+
     def req_list(self, cinfo ,params):
         path = agent.get_prop(params,'path',None)
-        
-        
+
+
         only_dir = agent.str2bool(agent.get_prop(params, "onlyDir", "false"))
         only_file = agent.str2bool(agent.get_prop(params, "onlyFile", "false"))
         app_name=agent.get_prop(params, "app")
         #image_info = agent.str2bool(agent.get_prop(params, "imageInfo", "false"))
-        
-        
+
+
         ptfilter = agent.get_prop(params, "filter", None)
         ptfilter_ignorecase = agent.str2bool(agent.get_prop(params, "filterIgnoreCase", "false"))
         ptfilterList= agent.get_prop(params, "filterList", None)
@@ -264,7 +264,7 @@ class FileSystem():
         arfilterList = None
         if ptfilterList is not None:
             arfilterList = json.loads(ptfilterList)
-        
+
         arret=[]
         if path=="$":
             if app_name is None:
@@ -283,9 +283,9 @@ class FileSystem():
             else:
                 for permpt in prms["paths"]:
                     arret.append({'Name': 'D:' + permpt["name"]})
-                    
+
         else:
-            lst=None            
+            lst=None
             options={}
             if app_name is not None:
                 options["app"]=app_name
@@ -302,7 +302,7 @@ class FileSystem():
                 if sys.version_info[0]==2:
                     if not isinstance(fname, unicode):
                         fname=fname.decode("utf8","replace")
-                
+
                 if pdir==utils.path_sep:
                     fp = pdir + fname
                 else:
@@ -316,7 +316,7 @@ class FileSystem():
                             bok = False
                             if ptfilter_ignorecase:
                                 bok = (fname.lower()==appnm.lower())
-                            else:  
+                            else:
                                 bok = (fname==appnm)
                             if bok:
                                 break
@@ -326,7 +326,7 @@ class FileSystem():
 
         #ORDINA PER NOME
         arret = sorted(arret, key=lambda k: k['Name'].lower())
-         
+
         jsret = {'items' : arret, 'permissions': {"apps":{}}}
         if path!="$" and app_name is None:
             a = jsret["permissions"]["apps"]
@@ -336,11 +336,11 @@ class FileSystem():
             paths = self.get_permission_path(cinfo, u"#FILESYSTEM://" + path, {"app":"logwatch" ,"check_exists": False})
             if len(paths)>0:
                 a["logwatch"]={}
-            
+
             None
-         
+
         return json.dumps(jsret)
-  
+
     def req_remove(self, cinfo ,params):
         path = self.check_and_replace_path(cinfo, agent.get_prop(params,'path',None), self.OPERATION_EDIT)
         files = agent.get_prop(params,'files',None)
@@ -353,7 +353,7 @@ class FileSystem():
             try:
                 utils.path_remove(fp)
             except Exception:
-                b=False            
+                b=False
             tp = None
             if b is True:
                 tp="K"
@@ -361,8 +361,8 @@ class FileSystem():
                 tp="E"
             arret.append({'Name': tp + ":" + arfiles[i]})
         return json.dumps({'items' : arret})
-    
-    
+
+
     def _cpmv(self, tp, fs, fd, replace):
         bok = True
         if utils.path_isdir(fs):
@@ -408,7 +408,7 @@ class FileSystem():
                 except Exception:
                     bok=False
         return bok
-        
+
     def req_copy(self, cinfo ,params):
         pathsrc = self.check_and_replace_path(cinfo, agent.get_prop(params,'pathsrc',None),  self.OPERATION_EDIT)
         pathdst = self.check_and_replace_path(cinfo, agent.get_prop(params,'pathdst',None),  self.OPERATION_EDIT)
@@ -436,9 +436,9 @@ class FileSystem():
                 self._append_to_list(arret, pathdst, nm)
             else:
                 arret.append({'Name': "E:" + nm})
-            
+
         return json.dumps({'items' : arret})
-    
+
     def req_move(self, cinfo ,params):
         pathsrc = self.check_and_replace_path(cinfo, agent.get_prop(params,'pathsrc',None), self.OPERATION_EDIT)
         pathdst = self.check_and_replace_path(cinfo, agent.get_prop(params,'pathdst',None), self.OPERATION_EDIT)
@@ -460,11 +460,11 @@ class FileSystem():
                 self._append_to_list(arret, pathdst, nm)
             else:
                 arret.append({'Name': "E:" + nm})
-            
+
         return json.dumps({'items' : arret})
-                                          
-     
-    def req_makedir(self, cinfo ,params):                                     
+
+
+    def req_makedir(self, cinfo ,params):
         path= self.check_and_replace_path(cinfo, agent.get_prop(params,'path',None), self.OPERATION_EDIT)
         name = agent.get_prop(params, "name", None)
         arret=[]
@@ -493,7 +493,7 @@ class FileSystem():
             arret.append({'Name': "E:" + newname})
 
         return json.dumps({'items' : arret})
-                                        
+
     def req_set_permissions(self, cinfo ,params):
         path= self.check_and_replace_path(cinfo, agent.get_prop(params,'path',None), self.OPERATION_EDIT)
         name = agent.get_prop(params, "name", None)
@@ -509,7 +509,7 @@ class FileSystem():
         except Exception:
             arret.append({'Name': "E:" + name})
         return json.dumps({'items' : arret})
-    
+
     def _set_permissions(self, fs, params, recursive):
         bok = True
         if not utils.path_islink(fs):
@@ -528,30 +528,30 @@ class FileSystem():
                 except Exception:
                     bok=False
         return bok
-    
+
     def req_download(self, cinfo, fdownload):
         path=agent.get_prop(fdownload.get_properties(),'path',None);
         try:
             path = self.check_and_replace_path(cinfo, path, self.OPERATION_DOWNLOAD)
-            fdownload.accept(path)        
+            fdownload.accept(path)
         except Exception as e:
             if path is None:
                 path=""
             raise e
 
-    
+
     def req_upload(self, cinfo ,fupload):
         path=agent.get_prop(fupload.get_properties(),'path',None);
         try:
             path = self.check_and_replace_path(cinfo, path, self.OPERATION_UPLOAD, {"check_exists": False})
-            fupload.accept(path)        
+            fupload.accept(path)
         except Exception as e:
             if path is None:
                 path=""
             raise e
 
 class Windows:
-    
+
     def __init__(self,agent_main):
         self._agent_main=agent_main
         self._osmodule = self._agent_main.load_lib("osutil")
@@ -559,7 +559,7 @@ class Windows:
     def destroy(self):
         self._agent_main.unload_lib("osutil")
         self._osmodule=None;
-    
+
     def get_resource_path(self):
         '''
         #LEGGE CARTELLA CSIDL_PROGRAM_FILES
@@ -572,7 +572,7 @@ class Windows:
         except:
             None
         '''
-        
+
         ##### TO FIX 22/09/2021
         if hasattr(self._osmodule, "DWAOSUtilGetDiskInfo"):
             wcp = ctypes.c_wchar_p()
@@ -587,30 +587,30 @@ class Windows:
                 s = ctypes.wstring_at(pi)
                 self._osmodule.freeMemory(pi)
         ##### TO FIX 22/09/2021
-        
+
         return json.loads(s)
-    
+
     def pathStartswith(self,apppath,pt):
         return apppath.lower().startswith(pt.lower());
-    
+
     def is_file_valid(self,path):
         return not self._is_file_junction(path)
-    
+
     def _is_file_junction(self,path):
         bret = self._osmodule.isFileJunction(path)
         return bret==1
-    
+
     def get_file_permissions(self,path):
         return {}
 
     def set_file_permissions(self,path,prms):
         None
-    
+
 class Linux:
-    
+
     def destroy(self):
         None
-    
+
     def get_resource_path(self):
         pths = []
         itm={"Name": u"/"}
@@ -628,7 +628,7 @@ class Linux:
 
     def is_file_valid(self,path):
         return True
-    
+
     def get_file_permissions(self,path):
         try:
             import pwd
@@ -653,7 +653,7 @@ class Linux:
             return itm
         except:
             return {}
-    
+
     def set_file_permissions(self,path,prms):
         if "mode" in prms:
             utils.path_change_permissions(path, int(prms["mode"],8))
@@ -669,10 +669,10 @@ class Linux:
             except:
                 gid=int(prms["group"])
             utils.path_change_owner(path, uid, gid)
-    
+
 
 class Mac(Linux):
-    
+
     def get_resource_path(self):
         pths = []
         itm={"Name": u"/"}

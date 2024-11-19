@@ -19,4 +19,3 @@ def get_supported(agt):
     if agent.is_linux() or agent.is_mac() or (agent.is_windows() and platform.release() == '10'):
         arSupportedApplications.append("shell")
     return arSupportedApplications
-        

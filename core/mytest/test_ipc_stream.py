@@ -16,7 +16,7 @@ TEST_TYPE="ReadAndWrite"
 TEST_NUM=100
 
 class TestSendStream(ipc.ChildProcessThread):
-    
+
     def run(self):
         strm = self.get_stream()
         strmother = strm.read_obj()
@@ -30,13 +30,13 @@ class TestSendStream(ipc.ChildProcessThread):
         time.sleep(1)
 
 class TestReadAndWrite(ipc.ChildProcessThread):
-    
+
     def run(self):
-        strm = self.get_stream()    
+        strm = self.get_stream()
         print("WAIT READ...")
         time.sleep(0.1)
         #time.sleep(10)
-        
+
         print("START READ")
         cnt=0
         tm=utils.get_time()
@@ -49,14 +49,14 @@ class TestReadAndWrite(ipc.ChildProcessThread):
                 print("READ ERROR: " + str(e) + "  CNT:" + str(cnt))
                 break
             if dt is None:
-                break 
+                break
             ar.append(dt)
-            cnt+=1       
-                
+            cnt+=1
+
         #print("***************")
         print("READ TIME:" + str(utils.get_time()-tm) + "  CNT:" + str(cnt))
         print("END READ")
-        
+
         if True:
             print("READ CHECK...")
             bok=True
@@ -73,28 +73,28 @@ class TestReadAndWrite(ipc.ChildProcessThread):
                     print("ERRORE: TEST out of range: " + str(i+1) + "'")
                     break
             if bok:
-                print("READ CHECK OK - CNT:" + str(cnt))         
+                print("READ CHECK OK - CNT:" + str(cnt))
         else:
             print("NO READ CHECK")
-        
+
         strm.close()
         time.sleep(1)
 
-if __name__ == "__main__":    
+if __name__ == "__main__":
     ipc.initialize()
     print("BEGIN")
-    
-             
+
+
     p=ipc.Process("mytest.test_ipc_stream", "Test" + TEST_TYPE)
     lstrm = p.start()
-          
+
     if TEST_TYPE=="ReadAndWrite":
-          
-        time.sleep(1)            
+
+        time.sleep(1)
         print("START WRITE")
         tm=utils.get_time()
         cnt=0
-        try:        
+        try:
             for i in range(TEST_NUM):
                 lstrm.write_bytes(utils.str_to_bytes("TEST" + str(i+1)))
                 cnt+=1
@@ -104,20 +104,20 @@ if __name__ == "__main__":
         print("WRITE TIME:" + str(utils.get_time()-tm) + "  CNT:" + str(cnt))
         print("END WRITE")
     elif TEST_TYPE=="SendStream":
-        
+
         lstrmother = ipc.Stream({"size":20})
         lstrm.write_obj(lstrmother)
-        
+
         #time.sleep(2)
         bt="0123456789"*2
         lstrmother.write(bt)
         lstrmother.close()
-    
-    
+
+
     lstrm.close()
-    
-    
-    print("PARENT CLOSE")    
+
+
+    print("PARENT CLOSE")
     #WAIT REMOVE IPC
     p.join()
     lstrm._destroy()
@@ -125,4 +125,3 @@ if __name__ == "__main__":
     print("END")
     ipc.terminate()
 
-    

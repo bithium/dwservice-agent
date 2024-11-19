@@ -6,13 +6,13 @@ with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 '''
 import agent
 
-        
+
 if __name__ == "__main__":
     arargs=[]
     arargs.append("-runonfly")
     arargs.append("runcode=51892643")
     agent.fmain(arargs)
-    
-            
+
+
 
 

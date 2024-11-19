@@ -8,7 +8,7 @@ with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import compile_generic
 
 class Compile(compile_generic.Compile):
-    
+
     def __init__(self):
         compile_generic.Compile.__init__(self,"lib_gdi")
 
@@ -16,24 +16,24 @@ class Compile(compile_generic.Compile):
         conf=None
         if osn=="windows":
             conf={}
-            conf["outname"]="dwaggdi.dll" 
-            conf["cpp_include_paths"]=[] 
+            conf["outname"]="dwaggdi.dll"
+            conf["cpp_include_paths"]=[]
             conf["cpp_library_paths"]=conf["cpp_include_paths"]
             conf["libraries"]=["gdi32", "shell32", "user32", "userenv"]
             conf["linker_flags"]="-static-libgcc -static-libstdc++ -shared"
         elif osn=="linux":
             conf={}
-            conf["outname"]="dwaggdi.so" 
-            conf["cpp_include_paths"]=[] 
+            conf["outname"]="dwaggdi.so"
+            conf["cpp_include_paths"]=[]
             conf["cpp_library_paths"]=conf["cpp_include_paths"]
             conf["libraries"]=["X11", "Xpm"]
         elif osn=="mac":
             None
             conf={}
-            conf["outname"]="dwaggdi.dylib" 
-            conf["cpp_include_paths"]=[] 
+            conf["outname"]="dwaggdi.dylib"
+            conf["cpp_include_paths"]=[]
             conf["cpp_library_paths"]=conf["cpp_include_paths"]
-            conf["libraries"]=[]            
+            conf["libraries"]=[]
             conf["linker_flags"]="-framework Cocoa -framework ApplicationServices -framework SystemConfiguration -framework IOKit"
         return conf
 
@@ -41,10 +41,9 @@ if __name__ == "__main__":
     m = Compile()
     #m.set_32bit()
     m.run()
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+

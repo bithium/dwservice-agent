@@ -51,7 +51,7 @@ def get_ssl_info():
     #if hasattr(ssl, 'PROTOCOL_TLSv1_3'):
     #    sslret += "TLSv1.3"
     if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
-        sslret += "TLSv1.2" 
+        sslret += "TLSv1.2"
     elif hasattr(ssl, 'PROTOCOL_TLSv1_1'):
         sslret += "TLSv1.1"
     elif hasattr(ssl, 'PROTOCOL_TLSv1'):
@@ -65,7 +65,7 @@ def _get_ssl_ver():
     #if hasattr(ssl, 'PROTOCOL_TLSv1_3'):
     #    return ssl.PROTOCOL_TLSv1_3
     if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
-        return ssl.PROTOCOL_TLSv1_2 
+        return ssl.PROTOCOL_TLSv1_2
     if hasattr(ssl, 'PROTOCOL_TLSv1_1'):
         return ssl.PROTOCOL_TLSv1_1
     if hasattr(ssl, 'PROTOCOL_TLSv1'):
@@ -87,7 +87,7 @@ def _connect_proxy_http(sock, host, port, proxy_info):
     resp = Response(sock)
     if resp.get_code() != '200':
         raise Exception("Proxy http error: " + str(resp.get_code()) + ".")
-    
+
 
 def _connect_proxy_socks(sock, host, port, proxy_info):
     usr = proxy_info.get_user()
@@ -112,7 +112,7 @@ def _connect_proxy_socks(sock, host, port, proxy_info):
                     arreq.append(struct.pack(">B", ord(c)))
                 arreq.append(struct.pack(">B", len(pwd)))
                 for c in pwd:
-                    arreq.append(struct.pack(">B", ord(c)))                
+                    arreq.append(struct.pack(">B", ord(c)))
                 sock.sendall(utils.bytes_join(arreq))
                 resp = sock.recv(2)
                 ver = utils.bytes_get(resp,0)
@@ -149,7 +149,7 @@ def _connect_proxy_socks(sock, host, port, proxy_info):
                 remoteresolve=True
             else:
                 addr_bytes = socket.inet_aton(socket.gethostbyname(host))
-            
+
         arreq = []
         arreq.append(struct.pack(">BBH", 0x04, 0x01, port))
         arreq.append(addr_bytes)
@@ -162,7 +162,7 @@ def _connect_proxy_socks(sock, host, port, proxy_info):
                 arreq.append(struct.pack(">B", ord(c)))
             arreq.append(b"\x00")
         sock.sendall(utils.bytes_join(arreq))
-        
+
         resp = sock.recv(8)
         if len(resp)<2:
             raise Exception("Proxy socks error.")
@@ -179,27 +179,27 @@ def _detect_proxy_windows():
         import _winreg
         aReg = _winreg.ConnectRegistry(None,_winreg.HKEY_CURRENT_USER)
         aKey = _winreg.OpenKey(aReg, r"Software\Microsoft\Windows\CurrentVersion\Internet Settings")
-        try: 
+        try:
             subCount, valueCount, lastModified = _winreg.QueryInfoKey(aKey)
             penabled=False
             pserver=None
-            for i in range(valueCount):                                           
+            for i in range(valueCount):
                 try:
                     n,v,t = _winreg.EnumValue(aKey,i)
                     if n.lower() == 'proxyenable':
                         penabled = v and True or False
                     elif n.lower() == 'proxyserver':
                         pserver = v
-                except EnvironmentError:                                               
+                except EnvironmentError:
                     break
             if penabled and pserver is not None:
                 sproxy=pserver
         finally:
-            _winreg.CloseKey(aKey)   
+            _winreg.CloseKey(aKey)
         if sproxy is not None:
             stp=None
             sho=None
-            spr=None            
+            spr=None
             lst = sproxy.split(";")
             for v in lst:
                 if len(v)>0:
@@ -221,14 +221,14 @@ def _detect_proxy_windows():
                         ar2 = ar1[1].split(":")
                         sho=ar2[0]
                         spr=ar2[1]
-                    
+
             if stp is not None:
                 prxi = ProxyInfo()
                 prxi.set_type(stp)
                 prxi.set_host(sho)
                 prxi.set_port(int(spr))
                 #print("PROXY WINDOWS DETECTED:" + stp + "  " + spr)
-                
+
     except:
         None
     return prxi
@@ -245,7 +245,7 @@ def _detect_proxy_linux():
         if sprx is not None:
             stp=None
             if sprx.endswith("/"):
-                sprx=sprx[0:len(sprx)-1]            
+                sprx=sprx[0:len(sprx)-1]
             if sprx.lower().startswith("socks:"):
                 stp="SOCKS5"
                 sprx=sprx[len("socks:"):]
@@ -262,7 +262,7 @@ def _detect_proxy_linux():
                     ar1 = sprx[0].split(":")
                     sho=ar1[0]
                     spr=ar1[1]
-                else: 
+                else:
                     ar1 = sprx[0].split(":")
                     sun=ar1[0]
                     spw=ar1[1]
@@ -296,7 +296,7 @@ def _set_detected_proxy_none():
         _proxy_detected["info"]=None
     finally:
         _proxy_detected["semaphore"].release()
-    
+
 def set_cacerts_path(path):
     global _cacerts_path
     _cacerts_path=path
@@ -328,8 +328,8 @@ def _connect_socket(host, port, proxy_info, timeout=_SOCKET_TIMEOUT_READ):
                 _proxy_detected["check"]=True
             finally:
                 _proxy_detected["semaphore"].release()
-            
-        conn_ex=None    
+
+        conn_ex=None
         func_prx=None
         if prxi is None or prxi.get_type() is None or prxi.get_type()=='NONE':
             sock.connect((host, port))
@@ -347,13 +347,13 @@ def _connect_socket(host, port, proxy_info, timeout=_SOCKET_TIMEOUT_READ):
                 conn_ex=utils.get_exception()
         else:
             sock.connect((host, port))
-        
+
         if func_prx is not None:
             try:
                 func_prx(sock, host, port, prxi)
             except:
                 conn_ex=utils.get_exception()
-        
+
         if conn_ex is not None:
             if bprxdet:
                 try:
@@ -369,8 +369,8 @@ def _connect_socket(host, port, proxy_info, timeout=_SOCKET_TIMEOUT_READ):
                     raise conn_ex
             else:
                 raise conn_ex
-                
-        
+
+
         while True:
             try:
                 #VALIDA CERITFICATI
@@ -389,9 +389,9 @@ def _connect_socket(host, port, proxy_info, timeout=_SOCKET_TIMEOUT_READ):
                     try:
                         import inspect
                         iargs = inspect.getargspec(ssl.wrap_socket).args
-                    except:                   
+                    except:
                         None
-                    if iargs is not None and "cert_reqs" in iargs and "ca_certs" in iargs and _cacerts_path!="": 
+                    if iargs is not None and "cert_reqs" in iargs and "ca_certs" in iargs and _cacerts_path!="":
                         sock = ssl.wrap_socket(sock, ssl_version=_get_ssl_ver(), cert_reqs=ssl.CERT_REQUIRED, ca_certs=_cacerts_path)
                     else:
                         sock = ssl.wrap_socket(sock, ssl_version=_get_ssl_ver())
@@ -400,7 +400,7 @@ def _connect_socket(host, port, proxy_info, timeout=_SOCKET_TIMEOUT_READ):
                 conn_ex=utils.get_exception()
                 if bprxdet:
                     if "CERTIFICATE_VERIFY_FAILED" in str(conn_ex):
-                        try: 
+                        try:
                             release_detected_proxy()
                             sock.close()
                             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -411,12 +411,12 @@ def _connect_socket(host, port, proxy_info, timeout=_SOCKET_TIMEOUT_READ):
                             bprxdet=False
                         except:
                             raise conn_ex
-                    else:                        
-                        raise conn_ex                    
+                    else:
+                        raise conn_ex
                 else:
-                    raise conn_ex  
-            
-            
+                    raise conn_ex
+
+
     except:
         e=utils.get_exception()
         sock.close()
@@ -463,13 +463,13 @@ def download_url_file(urlsrc, fdest, proxy_info=None, response_transfer_progress
     try:
         req = Request("GET", sp["path"],  {'Host' : sp["host"] + ':' + str(sp["port"],),  'Connection' : 'close'})
         sock.sendall(req.to_message())
-    
+
         #Legge risposta
         if utils.path_exists(fdest):
             utils.path_remove(fdest)
         ftmp = fdest + "TMP"
         if utils.path_exists(ftmp):
-            utils.path_remove(ftmp)        
+            utils.path_remove(ftmp)
         resp = Response(sock, ftmp, response_transfer_progress)
         if resp.get_code() == '301':
             sredurl=resp.get_headers()["Location"]
@@ -486,18 +486,18 @@ def download_url_file(urlsrc, fdest, proxy_info=None, response_transfer_progress
 
 def get_url_prop(url, proxy_info=None):
     sredurl=None
-    sp = _split_utl(url)    
+    sp = _split_utl(url)
     sock = _connect_socket(sp["host"], sp["port"], proxy_info)
     try:
         req = Request("GET", sp["path"],  {'Host' : sp["host"] + ':' + str(sp["port"],),  'Connection' : 'close'})
         sock.sendall(req.to_message())
-        
+
         prpresp = None;
         resp = Response(sock)
         if resp.get_code() == '200':
             rtp="xml"
             try:
-                hds = resp.get_headers()  
+                hds = resp.get_headers()
                 if hds is not None and "Content-Type" in hds:
                     if hds["Content-Type"]=="application/json":
                         rtp="json"
@@ -529,7 +529,7 @@ def ping_url(url, proxy_info=None):
             sock.sendall(req.to_message())
             resp = Response(sock)
             if resp.get_code() == '200':
-                tmret=round(time.time()-tm,3)                
+                tmret=round(time.time()-tm,3)
         finally:
             sock.shutdown(1)
             sock.close();
@@ -544,37 +544,37 @@ class ProxyInfo:
         self._port=None
         self._user=None
         self._password=None
-        
+
     def set_type(self, ptype):
         self._type=ptype
-    
+
     def set_host(self, host):
         self._host=host
-        
+
     def set_port(self, port):
         self._port=port
-    
+
     def set_user(self,  user):
         self._user=user
-    
+
     def set_password(self,  password):
         self._password=password
-    
+
     def get_type(self):
         return self._type
-    
+
     def get_host(self):
         return self._host
-        
+
     def get_port(self):
         return self._port
-    
+
     def get_user(self):
         return self._user
-    
+
     def get_password(self):
         return self._password
-        
+
 
 class Request:
     def __init__(self, method, url, prp=None):
@@ -599,7 +599,7 @@ class Request:
                 arhead.append(k)
                 arhead.append(': ')
                 arhead.append(self._prp[k])
-            
+
         if self._body is not None:
             arhead.append('\r\n')
             arhead.append('Compression: zlib')
@@ -613,7 +613,7 @@ class Request:
         return utils.str_to_bytes(''.join(arhead))
 
 class Response_Transfer_Progress:
-    
+
     def __init__(self, events=None):
             self._on_data=None
             self._properties={}
@@ -622,21 +622,21 @@ class Response_Transfer_Progress:
             if events is not None:
                 if 'on_data' in events:
                     self._on_data=events['on_data']
-    
+
     def set_property(self, key, value):
         self._properties[key]=value
-    
+
     def get_property(self, key):
         if key not in self._properties:
             return None
         return self._properties[key]
-    
+
     def get_byte_transfer(self):
         return self._byte_transfer
-    
+
     def get_byte_length(self):
         return self._byte_length
-    
+
     def fire_on_data(self,  byte_transfer,  byte_length):
         self._byte_transfer=byte_transfer
         self._byte_length=byte_length
@@ -650,7 +650,7 @@ class Response:
             app=sock.recv(1024 * 4)
             if app is None or len(app)==0:
                 raise Exception('Close connection')
-            data += app 
+            data += app
         ar = utils.bytes_to_str(data).split('\r\n\r\n')
         head = ar[0].split('\r\n')
         appbody = []
@@ -711,32 +711,32 @@ class Response:
 
     def get_headers(self):
         return self._headers
-    
+
     def get_body(self):
         return self._body
 
 
 class Worker(threading.Thread):
-    
+
     def __init__(self, parent,  queue, i):
         self._parent = parent
         threading.Thread.__init__(self, name=self._parent.get_name() + "_" + str(i))
         self.daemon=True
         self._queue=queue
-        
+
     def run(self):
         while not self._parent._destroy:
             func, args, kargs = self._queue.get()
             if func is not None:
-                try: 
+                try:
                     func(*args, **kargs)
-                except: 
+                except:
                     e=utils.get_exception()
                     self._parent.fire_except(e)
                 self._queue.task_done()
 
 class ThreadPool():
-    
+
     def __init__(self, name, queue_size, core_size , fexcpt):
             self._destroy=False
             self._name=name
@@ -745,9 +745,9 @@ class ThreadPool():
             for i in range(core_size):
                 self._worker = Worker(self, self._queue, i)
                 self._worker.start()
-    
+
     def get_name(self):
-        return self._name 
+        return self._name
 
     def fire_except(self, e):
         if self._fexcpt is not None:
@@ -756,20 +756,20 @@ class ThreadPool():
     def execute(self, func, *args, **kargs):
         if not self._destroy:
             self._queue.put([func, args, kargs])
-    
+
     def destroy(self):
         self._destroy=True #DA GESTIRE
 
 
 class QueueTask():
-    
+
     def __init__(self, tpool):
         self._task_pool=tpool
         self._semaphore = threading.Condition()
         self.list = []
         self.running = False
-        
-    
+
+
     def _exec_func(self):
         while True:
             func = None
@@ -782,8 +782,8 @@ class QueueTask():
             finally:
                 self._semaphore.release()
             func();
-                        
-        
+
+
     def execute(self, f, only_if_empty=False):
         self._semaphore.acquire()
         try:
@@ -799,11 +799,11 @@ class QueueTask():
                     self.list.append(f)
         finally:
             self._semaphore.release()
-        
-        
-            
+
+
+
 class BandwidthCalculator:
-    
+
     def __init__(self, ckint=0.5, ccint=5.0):
         self._semaphore = threading.Condition()
         self._current_byte_transfered=0
@@ -816,21 +816,21 @@ class BandwidthCalculator:
         self._calc_ar=[]
         self._calc_elapsed=0
         self._calc_transfered=0
-    
+
     def set_check_intervall(self,i):
         self._semaphore.acquire()
         try:
             self._check_intervall=i
         finally:
             self._semaphore.release()
-    
+
     def get_check_intervall(self):
         self._semaphore.acquire()
         try:
             return self._check_intervall
         finally:
             self._semaphore.release()
-            
+
     def add(self, c):
         self._semaphore.acquire()
         try:
@@ -838,9 +838,9 @@ class BandwidthCalculator:
             self._calculate()
         finally:
             self._semaphore.release()
-    
+
     def _calculate(self):
-        tm=get_time() 
+        tm=get_time()
         transfered=self._current_byte_transfered-self._last_byte_transfered
         elapsed = (tm - self._last_time)
         if elapsed<0:
@@ -857,14 +857,14 @@ class BandwidthCalculator:
             self._bps=int(float(self._calc_transfered)*(1.0/self._calc_elapsed))
             self._calculate_buffer_size()
             self._last_time=tm
-            self._last_byte_transfered=self._current_byte_transfered        
-    
+            self._last_byte_transfered=self._current_byte_transfered
+
     def get_bps(self):
         return self._bps
-    
+
     def get_buffer_size(self):
         return self._buffer_size
-    
+
     def _calculate_buffer_size(self):
         self._buffer_size=int(0.1*float(self._bps))
         if self._buffer_size<BUFFER_SIZE_MIN:
@@ -873,8 +873,8 @@ class BandwidthCalculator:
             self._buffer_size=BUFFER_SIZE_MAX
         else:
             self._buffer_size=int((float(self._buffer_size)/512.0)*512.0)
-        
-    
+
+
     def get_transfered(self):
         self._semaphore.acquire()
         try:
@@ -884,7 +884,7 @@ class BandwidthCalculator:
 
 '''
 class BandwidthLimiter:
-    
+
     def __init__(self,sync=True):
         if sync:
             self._semaphore = threading.Condition()
@@ -893,25 +893,25 @@ class BandwidthLimiter:
         self._last_time=0
         self._bandlimit=0
         self._last_wait=0
-        self._buffsz=0        
+        self._buffsz=0
         self.set_bandlimit(0)
-     
-     
+
+
     def _semaphore_acquire(self):
         if self._semaphore is not None:
             self._semaphore.acquire()
-    
+
     def _semaphore_release(self):
         if self._semaphore is not None:
             self._semaphore.release()
-    
+
     def get_bandlimit(self):
         self._semaphore_acquire()
         try:
             return self._bandlimit
         finally:
             self._semaphore_release()
-        
+
     def set_bandlimit(self,pbps):
         self._semaphore_acquire()
         try:
@@ -925,25 +925,25 @@ class BandwidthLimiter:
                 self._buffsz=BUFFER_SIZE_MAX
         finally:
             self._semaphore_release()
-        
+
     def get_buffer_size(self):
         self._semaphore_acquire()
         try:
             return self._buffsz
         finally:
             self._semaphore_release()
-    
+
     def get_waittime(self, c):
         self._semaphore_acquire()
         try:
-            tm=get_time() 
+            tm=get_time()
             timeout = 0
             if c > 0:
                 if self._bandlimit > 0:
                     if tm>=self._last_time:
                         elapsed = (tm - self._last_time) - self._last_wait
                         maxt = float(self._bandlimit)*elapsed
-                        timeout = float(c-maxt)/float(self._bandlimit) 
+                        timeout = float(c-maxt)/float(self._bandlimit)
                         self._last_wait=timeout
                         if self._last_wait<-1.0:
                             self._last_wait=0.0
@@ -951,18 +951,18 @@ class BandwidthLimiter:
                         if timeout < 0.0:
                             timeout=0.0
                     else:
-                        self._last_time=tm 
+                        self._last_time=tm
                         self._last_wait=0.0
             return timeout
         finally:
             self._semaphore_release()
-            
+
 '''
-            
+
 class ConnectionCheckAlive(threading.Thread):
     _KEEPALIVE_INTERVALL = 30
     _KEEPALIVE_THRESHOLD = 5
-    
+
     def __init__(self, conn):
         threading.Thread.__init__(self, name="ConnectionCheckAlive")
         self.daemon=True
@@ -975,7 +975,7 @@ class ConnectionCheckAlive(threading.Thread):
         try:
             if not self._connection.is_close():
                 self._connection._send_ws_ping()
-                #print("SESSION - PING INVIATO!")                
+                #print("SESSION - PING INVIATO!")
         except:
             #traceback.print_exc()
             None
@@ -989,36 +989,36 @@ class ConnectionCheckAlive(threading.Thread):
                 self._connection_keepalive_send = False
         finally:
             self._semaphore.release()
-        
-            
+
+
     def run(self):
-        #print("Thread alive started: " + str(self._connection))        
+        #print("Thread alive started: " + str(self._connection))
         bfireclose=False
         while not self._connection.is_shutdown():
             time.sleep(1)
             self._semaphore.acquire()
             try:
                 #Verifica alive
-                if not self._connection_keepalive_send:                    
-                    #print("Thread alive send counter: " + str(self._counter.get_value()) + " " + str(self._connection))                    
+                if not self._connection_keepalive_send:
+                    #print("Thread alive send counter: " + str(self._counter.get_value()) + " " + str(self._connection))
                     if self._counter.is_elapsed((ConnectionCheckAlive._KEEPALIVE_INTERVALL-ConnectionCheckAlive._KEEPALIVE_THRESHOLD)):
                         self._connection_keepalive_send=True
                         self._send_keep_alive()
                         #print("Thread alive send: " + str(self._connection))
-                        
+
                 else:
                     if self._counter.is_elapsed((ConnectionCheckAlive._KEEPALIVE_INTERVALL+ConnectionCheckAlive._KEEPALIVE_THRESHOLD)):
                         bfireclose=not self._connection.is_close()
-                        break                  
+                        break
             finally:
                 self._semaphore.release()
         self._connection.shutdown();
         if bfireclose is True:
-            self._connection.fire_close(True)        
+            self._connection.fire_close(True)
         #print("Thread alive stopped: " + str(self._connection))
 
 class ConnectionReader(threading.Thread):
-    
+
     def __init__(self, conn):
         threading.Thread.__init__(self, name="ConnectionReader")
         self.daemon=True
@@ -1035,10 +1035,10 @@ class ConnectionReader(threading.Thread):
             data.append(s)
             cnt+=len(s)
         return utils.bytes_join(data)
-        
-    
+
+
     def run(self):
-        #print("Thread read started: " + str(self._connection))        
+        #print("Thread read started: " + str(self._connection))
         bfireclose=False
         bconnLost=True
         sock = self._connection.get_socket()
@@ -1056,15 +1056,15 @@ class ConnectionReader(threading.Thread):
                             lendt = bt1;
                         else:
                             bt0=utils.bytes_get(data,0);
-                            if bt0 == 136: #CLOSE  
-                                bconnLost=False                              
+                            if bt0 == 136: #CLOSE
+                                bconnLost=False
                                 bfireclose=not self._connection.is_close()
                                 break
                             elif bt0 == 138: #PONG
                                 #print("SESSION - PONG RICEVUTO!")
                                 continue
                             else:
-                                continue    
+                                continue
                     elif bt1 == 126:
                         data = self._read_fully(sock, 2)
                         if len(data) == 0:
@@ -1089,20 +1089,20 @@ class ConnectionReader(threading.Thread):
                         bfireclose=not self._connection.is_close()
                         break
                     self._connection.fire_data(data)
-                    
+
         except:
             e=utils.get_exception()
             bfireclose=not self._connection.is_close()
             #traceback.print_exc()
-            self._connection.fire_except(e) 
+            self._connection.fire_except(e)
         self._connection.shutdown()
         if bfireclose is True:
-            self._connection.fire_close(bconnLost)        
+            self._connection.fire_close(bconnLost)
         #print("Thread read stopped: " + str(self._connection))
-        
+
 
 class Connection:
-            
+
     def __init__(self, events):
         self._close=True
         self._connection_lost=False
@@ -1140,10 +1140,10 @@ class Connection:
         self._ws_close_b0 |= 1 << 7;
         self._ws_close_b0 |= 0x8 % 128;
         self._ws_close_struct=struct.Struct("!BBI")
-                
-            
+
+
     def open(self, prop, proxy_info):
-        
+
         if self._sock is not None:
             raise Exception("Already connect!")
 
@@ -1157,17 +1157,17 @@ class Connection:
             for k in prop:
                 if prop[k] is not None:
                     appprp["dw_" + k]=prop[k];
-                    
-                    
+
+
             appprp["host"] = prop['host'] + ":" + prop['port']
             appprp["Connection"] = 'keep-alive, Upgrade'
             appprp["Upgrade"] = 'websocket'
             appprp["Sec-WebSocket-Key"] = 'XV3+Fd9KMg54tXP7Tsrl8Q=='
             appprp["Sec-WebSocket-Version"] = '13'
-                    
+
             req = Request("GET", "/openraw.dw", appprp)
             self._sock.sendall(req.to_message())
-    
+
             #Legge risposta
             resp = Response(self._sock);
             if resp.get_code() != '101':
@@ -1175,36 +1175,36 @@ class Connection:
                     raise Exception(resp.get_body())
                 else:
                     raise Exception("Server error.")
-                        
+
             self._close=False
             self._sock.settimeout(None)
-            
+
             #Avvia thread alive
             self._tdalive = ConnectionCheckAlive(self)
             self._tdalive.start()
-    
+
             #Avvia thread lettura
             self._tdread = ConnectionReader(self)
             self._tdread.start()
-            return resp            
-                            
+            return resp
+
         except:
             e=utils.get_exception()
             self.shutdown()
             raise e
-    
+
     def get_socket(self):
         return self._sock
-    
-   
+
+
     def send(self, data):
         self._send_ws_data(data)
-        
+
     def fire_data(self, dt):
         if self._on_data is not None:
-            self._on_data(dt)        
-            
-    def fire_close(self,connlost):        
+            self._on_data(dt)
+
+    def fire_close(self,connlost):
         with self._lock_status:
             self._connection_lost=connlost
             onc=self._on_close
@@ -1213,11 +1213,11 @@ class Connection:
             self._on_except = None
         if onc is not None:
             onc()
-    
-    def fire_except(self,e):  
+
+    def fire_except(self,e):
         if self._on_except is not None:
-            self._on_except(e) 
-    
+            self._on_except(e)
+
     def _send_ws_data(self,dt):
         if self._sock is None:
             raise Exception('connection closed.')
@@ -1228,13 +1228,13 @@ class Connection:
                 ba=bytearray(self._ws_data_struct_1.pack(self._ws_data_b0, 0x80|length,0)) #rnd=random.randint(0,2147483647)
             elif length <= 0xFFFF:
                 ba=bytearray(self._ws_data_struct_2.pack(self._ws_data_b0, 0xFE,length >> 8 & 0xFF,length & 0xFF,0)) #rnd=random.randint(0,2147483647)
-            else: 
+            else:
                 ba=bytearray(self._ws_data_struct_3.pack(self._ws_data_b0, 0xFF,length,0)) #rnd=random.randint(0,2147483647)
             ba+=dt
             utils.socket_sendall(self._sock,ba)
         finally:
             self._lock_send.release()
-            
+
     def _send_ws_close(self):
         if self._sock is None:
             raise Exception('connection closed.')
@@ -1242,8 +1242,8 @@ class Connection:
         try:
             utils.socket_sendall(self._sock,self._ws_close_struct.pack(self._ws_close_b0, 0x80 | 0, 0)) #rnd=random.randint(0,2147483647)
         finally:
-            self._lock_send.release() 
-    
+            self._lock_send.release()
+
     def _send_ws_ping(self):
         if self._sock is None:
             raise Exception('connection closed.')
@@ -1257,17 +1257,17 @@ class Connection:
         with self._lock_status:
             bret = self._close
         return bret
-    
+
     def is_connection_lost(self):
         with self._lock_status:
             bret = self._connection_lost
-        return bret        
-    
+        return bret
+
     def is_shutdown(self):
         with self._lock_status:
             bret = self._shutdown
         return bret
-    
+
     def close(self):
         bsendclose=False
         try:
@@ -1289,16 +1289,16 @@ class Connection:
                         break
         except:
             None
-            
-    
+
+
     def shutdown(self):
-        
+
         with self._lock_status:
             if self._shutdown:
                 return
             self._close=True
             self._shutdown=True
-        
+
         if self._sock is not None:
             #Chiude thread alive
             #if (self._tdalive is not None) and (not self._tdalive.is_close()):
@@ -1309,8 +1309,8 @@ class Connection:
             #if (self._tdread is not None) and (not self._tdread.is_close()):
             #    self._tdread.join(5000)
             self._tdread = None
-            
-            try:                
+
+            try:
                 self._sock.shutdown(socket.SHUT_RDWR)
             except:
                 None
@@ -1321,4 +1321,3 @@ class Connection:
             self._sock = None
             self._prop = None
             self._proxy_info = None
-        
